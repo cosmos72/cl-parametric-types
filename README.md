@@ -22,12 +22,13 @@ Several comparisons exists between C++ templates and Common Lisp macros, includi
 
 Any serious comparison between C++ templates and CL macros will agree on some basic facts:
 * Both are Turing complete at compile-time, i.e. they can instruct the compiler
-  to perform arbitrary computations while compiling
-  - opposed to normal programs code, which perform arbitrary computations at *runtime*
+  to perform arbitrary computations while compiling - opposed to normal programs code,
+  which perform arbitrary computations at *runtime*
 * The syntax of Common Lisp macros is the same as regular Common Lisp,
-  while the syntax of C++ templates is different from regular C++
-  - some could say it is "verbose", "ugly" or even worse, but that's not the point:
-  the point is that C++ templates and regular C++ are two different languages.
+  while the syntax of C++ templates is different from regular C++ - some could say
+  it is "verbose", "ugly" or even worse, but that's not the point:
+  the point is that C++ templates and regular C++ are two different languages,
+  with different syntax and rules.
 
 So, are C++-style templates really a missing feature in Common Lisp?
 An intuitive answer could be
