@@ -12,6 +12,7 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
+(in-package :cl-user)
 
 (defpackage #:cl-parametric-types
   (:nicknames #:cl-ptypes #:cpt #:c+t)
@@ -24,5 +25,7 @@
   (:export #:template-class #:template-struct #:template-type
 	   #:template-function #:template
 
-	   #:typexpand))
+	   #:typexpand
 
+           #:mangle   #:concretize  #:get-definition
+           #:instantiate-definition #:instantiate  #:instantiate*))
