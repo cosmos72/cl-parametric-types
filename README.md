@@ -53,7 +53,7 @@ CL-PARAMETRIC-TYPES exports the following macros:
         }
 
   i.e. both instruct the compiler that a function `LESS` exists, and it in order to actually compile
-  and use it, it must be instantiated first, i.e. specialized, on a single type (<t> in CL, T in C++)
+  and use it, it must be instantiated first, i.e. specialized, on a single type (&lt;t&gt; in CL, T in C++)
 
   Note: `TEMPLATE-FUNCTION` accepts arbitrary lambda-lists as its arguments, including optional arguments,
   keyword arguments, and &rest as for example:
@@ -76,7 +76,7 @@ CL-PARAMETRIC-TYPES exports the following macros:
 
   is conceptually equivalent to the following C++ code
 
-        template<class T>
+        template<class T1, class T2>
         struct pair
         {
             T1 first;
@@ -97,7 +97,7 @@ CL-PARAMETRIC-TYPES exports the following macros:
 
   is conceptually equivalent to the following C++ code
 
-        template<class T>
+        template<class T, class T2>
         class pair
         {
         private:
@@ -105,7 +105,7 @@ CL-PARAMETRIC-TYPES exports the following macros:
             T2 second;
         }
 
-  Note: also `TEMPLATE-STRUCT` accepts arbitrary lambda-lists as its arguments, including optional arguments,
+  Note: also `TEMPLATE-CLASS` accepts arbitrary lambda-lists as its arguments, including optional arguments,
   keyword arguments, and &rest.
 
 Unlike C++ templates, where you must declare if the arguments of `template<...>` are types or values
@@ -144,9 +144,9 @@ Yet there are other points of view:
   which can be later specialized by somebody else on concrete cases (instantiated),
   producing very efficient machine code, without duplicating the source code.
   
-  Common Lisp does not *natively* provide any equivalent mechanism, because macros
+  Common Lisp does not *directly* provide any equivalent mechanism, because macros
   operate on a different level: they can produce arbitrary code, but actually programming
-  them is up to the programmer. They are general tools to build a programming language,
+  them is up to the programmer. Macros are general tools to build a programming language,
   rather than a specialized tool to repeatedly compile the same source code with different types.
 * If Common Lisp macros are to be considered "better" (for some definition of better)
   than C++ templates, then it should be possible to implement C++ templates using them.
