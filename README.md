@@ -5,11 +5,108 @@ Summary
 -------
 CL-PARAMETRIC-TYPES adds C++-style template classes, structs and functions to Common Lisp.
 
-This project is currently ALPHA, not yet ready for public usage.
+This project is currently BETA, i.e. usable but not complete.
 
+
+Supported systems
+-----------------
+CL-PARAMETRIC-TYPES is currently tested only on SBCL.
+
+It is quite portable, only relying on [introspect-environment](https://github.com/Bike/introspect-environment)
+so porting it to other Common Lisp implementations should be quite straightforward.
+
+
+Installation and loading
+------------------------
+Download CL-PARAMETRIC-TYPES into your Quicklisp local-projects folder.
+Open a shell and run the commands:
+
+    $ cd ~/quicklisp/local-projects
+    $ git clone git://github.com/cosmos72/cl-parametric-types.git
+
+then load a REPL and run:
+
+    CL-USER> (ql:quickload "cl-parametric-types")
+    CL-USER> (use-package :cl-parametric-types)
+     
+If all goes well, it will automatically load CL-PARAMETRIC-TYPES and its dependencies.
+
+
+Basic usage
+-----------
+CL-PARAMETRIC-TYPES exports the following macros:
+
+- `TEMPLATE-FUNCTION` declares that a function is parametric, i.e. that the "abstract" source code you provide
+  will be later instantiated on "concrete" types. For example,
+
+        (template-function (<t>)
+          (defun less (a b)
+            (declare (type <t> a b))
+            (< a b)))
+
+  is conceptually equivalent to the following C++ code
+
+        template<class T>
+        bool less(T a, T b)
+        {
+            return a < b;
+        }
+
+  i.e. both instruct the compiler that a function `LESS` exists, and it in order to actually compile
+  and use it, it must be instantiated first, i.e. specialized, on a single type (<t> in CL, T in C++)
+
+  Note: `TEMPLATE-FUNCTION` accepts arbitrary lambda-lists as its arguments, including optional arguments,
+  keyword arguments, and &rest as for example:
+
+        (template-function (&optional (<t1> real) (<t2> real))
+          (defun less (a b)
+            (declare (type <t1> a)
+                     (type <t2> b))
+            (< a b)))
+  
+
+- `TEMPLATE-STRUCT` declares that a structure-object is parametric,
+  i.e. that the "abstract" source code you provide  will be later instantiated
+  on "concrete" types. For example,
+
+        (template-struct (&optional (<t1> t) (<t2> t))
+          (defstruct pair
+            (first  nil :type <t1>)
+            (second nil :type <t2>)))
+
+  is conceptually equivalent to the following C++ code
+
+        template<class T>
+        struct pair
+        {
+            T1 first;
+            T2 second;
+        }
+
+- `TEMPLATE-CLASS` declares that a standard-object is parametric,
+  i.e. that the "abstract" source code you provide  will be later instantiated
+  on "concrete" types. For example,
+
+        (template-class (&optional (<t1> t) (<t2> t))
+          (defclass pair ()
+            ((first  :type <t1>)
+             (second :type <t2>))))
+
+  is conceptually equivalent to the following C++ code
+
+        template<class T>
+        class pair
+        {
+        private:
+            T1 first;
+            T2 second;
+        }
+
+As a generalization, the arguments of `TEMPLATE-FUNCTION`, `TEMPLATE-STRUCT` and `TEMPLATE-CLASS`,
+they can be anything, not only types.
 
 Appendix: why bringing C++-style templates to Common Lisp?
--------
+----------------------------------------------------------
 
 Short answer: because we can.
 
@@ -23,11 +120,11 @@ Several comparisons exists between C++ templates and Common Lisp macros, includi
 Any serious comparison between C++ templates and CL macros will agree on some basic facts:
 * Both are Turing complete at *compile-time*, i.e. they can instruct the compiler
   to perform arbitrary computations while compiling - opposed to normal programs code,
-  which perform arbitrary computations at *runtime*
+  which perform arbitrary computations at *runtime*.
 * The syntax of Common Lisp macros is the same as regular Common Lisp,
   while the syntax of C++ templates is different from regular C++ - some could say
   it is "verbose", "ugly" or even worse, but that's not the point:
-  The point is that C++ templates and regular C++ are two different languages,
+  the point is that C++ templates and regular C++ are two different languages,
   with different syntax and rules.
 
 So, are C++-style templates really a missing feature in Common Lisp?
