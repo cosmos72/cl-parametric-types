@@ -19,9 +19,6 @@
 
   (:use #:cl)
 
-  (:import-from #:introspect-environment
-		#:typexpand)
-
   (:export #:template-class #:template-struct #:template-type
 	   #:template-function #:template
 

@@ -47,12 +47,9 @@
 		 (,defstruct ,name-and-options
 		   ,@slot-descriptions))))
        ,@(define-struct-accessors name slot-descriptions)
-       ;; rely on DEFMACRO and DEFTYPE to parse
-       ;; the TEMPLATE-ARGS lambda list
-       (defmacro ,name ,template-args
-	 `(instantiate* 'template-type ',',name '(,,@template-types)))
+       ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
        (deftype ,name ,template-args
-	 `(instantiate* 'template-type ',',name '(,,@template-types))))))
+	 (instantiate* 'template-type ',name `(,,@template-types))))))
 
 
 (defmacro template-class
@@ -68,12 +65,9 @@
 		 (,defclass ,name ,direct-superclasses
 		   ,slot-descriptions
 		   ,@options))))
-       ;; rely on DEFMACRO and DEFTYPE to parse
-       ;; the TEMPLATE-ARGS lambda list
-       (defmacro ,name ,template-args
-	 `(instantiate* 'template-type ',',name '(,,@template-types)))
+       ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
        (deftype ,name ,template-args
-	 `(instantiate* 'template-type ',',name '(,,@template-types))))))
+	 (instantiate* 'template-type ',name `(,,@template-types))))))
 
 
 (defmacro template-type

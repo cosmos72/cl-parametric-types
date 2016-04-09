@@ -29,7 +29,7 @@ then load a REPL and run:
     CL-USER> (ql:quickload "cl-parametric-types")
     CL-USER> (use-package :cl-parametric-types)
      
-If all goes well, it will automatically load CL-PARAMETRIC-TYPES and its dependencies.
+If all goes well, it will load CL-PARAMETRIC-TYPES and its dependencies.
 
 
 Basic usage

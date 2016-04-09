@@ -65,13 +65,11 @@ cannot instantiate ~S"
 	(progn
 	  (ecase kind
 	    (template-function (fdefinition concrete))
-	    (template-type     (find-class concrete)))
-	  (log.info "~A ~S is already instantiated as ~S"
-		    (kind-name kind) abstract concrete))
+	    (template-type     (find-class concrete))))
       (condition ()
-	(setf concrete (instantiate kind name actual-types))
-	(log.info "~A ~S instantiated successfully as ~S"
-		  (kind-name kind) abstract concrete)))
+	(log.debug "instantiating ~A ~S as ~S~%"
+                   (kind-name kind) abstract concrete)
+	(setf concrete (instantiate kind name actual-types))))
     concrete))
 
 

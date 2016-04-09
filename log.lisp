@@ -16,4 +16,9 @@
 (in-package #:cl-parametric-types)
 
 (defmacro log.info (&rest args)
-  `(format t ,@args))
+  (when args
+    `(format t ,@args)))
+
+(defmacro log.debug (&rest args)
+  (when args
+    `(format t ,@args)))
