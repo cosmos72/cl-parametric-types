@@ -89,18 +89,27 @@
         
 (defun normalize-type (type)
   (declare (type (or symbol cons) type))
-  (if (symbolp type)
-      type
-      (case (first type)
-        (integer       (normalize-integer-type       type))
-        (signed-byte   (normalize-signed-byte-type   type))
-        (unsigned-byte (normalize-unsigned-byte-type type))
-        (otherwise     #+(and) type
-                       ;; redundant recursion, (mangle) already calls (typexpand)
-                       ;; on each template argument
-                       #-(and)
-                       (loop :for e :in type
-                          :collect (normalize-type e))))))
+  (etypecase type
+    (symbol
+      (case type
+        ;; signed-byte -> integer, for uniformity
+        ;; with (signed-byte *) -> integer above
+        (signed-byte   'integer)
+        ;; unsigned-byte -> (integer 0), for uniformity
+        ;; with (unsigned-byte *) -> (integer 0) above
+        (unsigned-byte '(integer 0))
+        (otherwise     type)))
+    (cons
+     (case (first type)
+       (integer       (normalize-integer-type       type))
+       (signed-byte   (normalize-signed-byte-type   type))
+       (unsigned-byte (normalize-unsigned-byte-type type))
+       (otherwise     #+(and) type
+                      ;; redundant recursion, (mangle) already calls (typexpand)
+                      ;; on each template argument
+                      #-(and)
+                      (loop :for e :in type
+                         :collect (normalize-type e)))))))
 
 (defun typexpand-1 (type &optional env)
   (declare (type (or symbol cons) type))
