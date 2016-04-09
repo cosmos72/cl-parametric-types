@@ -136,7 +136,7 @@ Any serious comparison between C++ templates and CL macros will agree on some ba
 
 So, are C++-style templates really a missing feature in Common Lisp?
 
-An intuitive answer could be
+A Lisp advocate answer could be
 "no, because Common Lisp macros are equivalent to (and more elegant than) C++ templates"
 
 Yet there are other points of view:
@@ -155,5 +155,6 @@ Yet there are other points of view:
   and *then* the statement "CL macros are better than C++ templates" could have some objective justification.
 
 CL-PARAMETRIC-TYPES exists for all these reasons, and for an additional one:
+
 scratch the author's personal itch about combining two of his favorite tools - Common Lisp and C++ templates.
 
