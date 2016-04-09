@@ -83,6 +83,9 @@ CL-PARAMETRIC-TYPES exports the following macros:
             T2 second;
         }
 
+  Note: also `TEMPLATE-STRUCT` accepts arbitrary lambda-lists as its arguments, including optional arguments,
+  keyword arguments, and &rest.
+  
 - `TEMPLATE-CLASS` declares that a standard-object is parametric,
   i.e. that the "abstract" source code you provide  will be later instantiated
   on "concrete" types. For example,
@@ -102,8 +105,12 @@ CL-PARAMETRIC-TYPES exports the following macros:
             T2 second;
         }
 
-As a generalization, the arguments of `TEMPLATE-FUNCTION`, `TEMPLATE-STRUCT` and `TEMPLATE-CLASS`,
-they can be anything, not only types.
+  Note: also `TEMPLATE-STRUCT` accepts arbitrary lambda-lists as its arguments, including optional arguments,
+  keyword arguments, and &rest.
+
+Unlike C++ templates, where you must declare if the arguments of `template<...>` are types or values
+(and if they are values, you must declare their type), the arguments of `TEMPLATE-FUNCTION`,
+`TEMPLATE-STRUCT` and `TEMPLATE-CLASS` can be anything, not only types.
 
 Appendix: why bringing C++-style templates to Common Lisp?
 ----------------------------------------------------------
