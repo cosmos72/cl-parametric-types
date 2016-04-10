@@ -62,12 +62,11 @@ cannot instantiate ~S"
   (declare (type list actual-types))
   (multiple-value-bind (concrete actual-types*) (concretize kind name actual-types)
     (handler-case
-	(progn
-	  (ecase kind
-	    (template-function (fdefinition concrete))
-	    (template-type     (find-class concrete))))
+        (ecase kind
+          (template-type                         (find-class concrete))
+          ((template-function template-accessor) (fdefinition concrete)))
       (condition ()
-	(log.debug "instantiating ~A ~S as ~S~%"
+	(log.debug "; instantiating ~A ~S as ~S~%"
                    (kind-name kind) (cons name actual-types) concrete)
 	(setf concrete (instantiate kind name (if normalize actual-types* actual-types)
 				    :normalize nil))))

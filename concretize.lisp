@@ -144,19 +144,35 @@
     (setf actual-types (normalize-typexpand-types actual-types)))
   (values
    (ecase kind
-     (template-function
-      (concatenate 'string
-		   (symbol-name name) "-"
-		   (mangle-cons-type actual-types)))
      (template-type
-      (mangle-cons-type (cons name actual-types))))
+      (mangle-cons-type (cons name actual-types)))
+     (template-function
+      ;; we want functions with a single template argument to be simple.
+      ;; In particular, the following mangles (MAKE ((PAIR A B) ...))
+      ;; to (MAKE-<PAIR.A.B> ...) which is exactly what DEFSTRUCT produces :)
+      (let ((tokens (loop :for actual-type :in actual-types
+                       :collect "-"
+                       :collect (mangle-any-type actual-type))))
+        (apply #'concatenate 'string (symbol-name name) tokens)))
+     (template-accessor
+      ;; we also want template-struct accessors to match what DEFSTRUCT produces
+      ;; For example, 'FIRST '((PAIR A B)) must become <PAIR.A.B>-FIRST
+      (let ((concrete-struct (mangle-any-type (first actual-types))))
+        (concatenate 'string concrete-struct "-" (symbol-name name)))))
    actual-types))
 
 (defmethod concretize (kind name actual-types &key (normalize t))
   (declare (type list actual-types))
   (multiple-value-bind (mangled-name actual-types*)
       (mangle kind name actual-types :normalize normalize)
-    (values
-     (intern mangled-name (symbol-package name))
-     actual-types*)))
+    (let* ((symbol
+            (case kind
+              ;; for template-accessors, use the package where the struct is defined
+              ;; because accessors could be named FIRST or similar, which is in package CL
+              (template-accessor (recurse-first-atom actual-types))
+              (otherwise name)))
+           (package (symbol-package symbol)))
+      (values
+       (intern mangled-name package)
+       actual-types*))))
 

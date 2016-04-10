@@ -46,24 +46,25 @@
   (declare (type cons type))
   (let ((bits (or (second type) '*)))
     (cond
-      ((eq '* bits) 'integer)     ;; (signed-byte *) -> integer, because the latter is shorter
+      ((eq '* bits) 'integer) ;; (signed-byte *) -> integer, because the latter is shorter
       ((and +most-positive-fixnum-is-power-of-2-minus-1+
             +fixnum-is-twos-complement+
             (eql bits #.(1+ (integer-length most-positive-fixnum))))
-       #||#         'fixnum)      ;; (signed-byte #.(1+ (integer-length most-positive-fixnum))) -> fixnum
-      (t            type))))
+       #||#   'fixnum)        ;; (signed-byte #.the-right-number-of-bits) -> fixnum
+      (t      type))))
 
 (defun normalize-integer-type (type)
   (declare (type cons type))
-  (let ((lo (or (second type) '*))
+  (let ((integer (first type))
+        (lo (or (second type) '*))
         (hi (or (third  type) '*)))
     (block nil
       (when (eq '* hi)
         (return
           (if (eq '* lo)
-              (first type)      ;; (integer * *) -> integer
-              `(,(first type) ,lo)))) ;; (integer n *) -> (integer n)
-      
+              integer              ;; (integer * *) -> integer
+              (list integer lo)))) ;; (integer n *) -> (integer n)
+
       (when (is-power-of-2-minus-1? hi)
         (when (eql 0 lo)
           (return (normalize-unsigned-byte-type `(unsigned-byte ,(integer-length hi)))))

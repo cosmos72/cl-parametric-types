@@ -112,6 +112,50 @@ Unlike C++ templates, where you must declare if the arguments of `template<...>`
 (and if they are values, you must declare their type), the arguments of `TEMPLATE-FUNCTION`,
 `TEMPLATE-STRUCT` and `TEMPLATE-CLASS` can be anything, not only types.
 
+Invoking template functions
+---------------------------
+
+When a function is declared TEMPLATE-FUNCTION, a macro is actually created
+with its name, to instantiate the appropriate function and to dispatch at compile time.
+
+For example, after
+
+        (template-class (&optional (<t1> t) (<t2> t))
+          (defclass pair ()
+            ((first  :type <t1>)
+             (second :type <t2>))))
+
+The macros `MAKE`, `COPY`, `PAIR-FIRST` and `PAIR-SECOND` are available,
+and both `(SETF PAIR-FIRST)` and `(SETF PAIR-SECOND)` work as expected,
+provided that you explicitly pass to each macro the actual template arguments
+you want to use:
+
+        (make ((pair bit fixnum)) :first 1 :second 2)
+        ; instantiating template-type (PAIR BIT FIXNUM) as <PAIR.BIT.FIXNUM>
+        #S(<PAIR.BIT.FIXNUM> :FIRST 1 :SECOND 2)
+        
+        (defvar *pair* *) ;; store last result into *pair*
+        *PAIR*
+
+        (pair-first (bit fixnum) *pair*)
+        1
+
+        (setf (pair-first (bit fixnum) *pair*) 0)
+        0
+
+        *pair*
+        #S(<PAIR.BIT.FIXNUM> :FIRST 0 :SECOND 2)
+        
+
+Appendix: design philosophy
+---------------------------
+
+Short version: maximum performance, zero runtime overhead, compile-time instantiation,
+  compile-time overload resolution.
+
+Long version: to be written...
+
+
 Appendix: why bringing C++-style templates to Common Lisp?
 ----------------------------------------------------------
 
