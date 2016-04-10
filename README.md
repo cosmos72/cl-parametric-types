@@ -10,9 +10,10 @@ This project is currently BETA, i.e. usable but not complete.
 
 Supported systems
 -----------------
-CL-PARAMETRIC-TYPES is currently tested only on SBCL.
+CL-PARAMETRIC-TYPES is currently tested on SBCL, CCL, CLISP and CMUCL.
 
-It is quite portable, only relying on [introspect-environment](https://github.com/Bike/introspect-environment)
+It is quite portable, as it only needs `TYPEXPAND`, for example from
+[introspect-environment](https://github.com/Bike/introspect-environment)
 so porting it to other Common Lisp implementations should be quite straightforward.
 
 

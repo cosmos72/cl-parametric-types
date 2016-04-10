@@ -26,7 +26,6 @@
          (instance (gensym (symbol-name 'instance)))
          (concrete-function (gensym (symbol-name 'concrete-function))))
     `(defmacro ,reader-name ((,@template-args) ,instance)
-       (break)
        (let ((,concrete-function (instantiate* 'template-accessor ',slot-name
                                                `((,',struct-name ,,@template-types)))))
          `(,,concrete-function ,,instance)))))
