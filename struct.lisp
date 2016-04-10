@@ -25,10 +25,10 @@
 	 (reader-name (intern reader-name-s (symbol-package name))))
     `(defmethod mangle ((kind (eql 'template-function))
 			(name (eql ',reader-name))
-			actual-types)
+			actual-types &key (normalize t))
        (concatenate 'string
 		    ,(concatenate 'string reader-name-s "-")
-		    (mangle-cons-type actual-types)))))
+		    (mangle-cons-type actual-types :normalize normalize)))))
 
 
 (defun define-struct-accessors (name slot-descriptions)
