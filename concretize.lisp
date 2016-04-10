@@ -32,92 +32,7 @@
      :unless (member arg lambda-list-keywords)
      :collect arg))
 
-(defconstant +most-positive-fixnum-is-power-of-2-minus-1+
-  (let ((n most-positive-fixnum))
-    (zerop (logand n (1+ n)))))
 
-(defconstant +fixnum-is-twos-complement+
-  (eql (lognot most-negative-fixnum) most-positive-fixnum))
-
-(declaim (inline is-power-of-2-minus-1?))
-(defun is-power-of-2-minus-1? (n)
-  (declare (type integer n))
-  (if (typep n 'fixnum)
-      (if (< n most-positive-fixnum)
-          (zerop (logand n (1+ n)))
-          +most-positive-fixnum-is-power-of-2-minus-1+)
-      ;; slow bignum arithmetic
-      (zerop (logand n (1+ n)))))
-
-(defun normalize-unsigned-byte-type (type)
-  (declare (type cons type))
-  (let ((bits (or (second type) '*)))
-    (case bits
-      ((*) '(integer 0)) ;; (unsigned-byte *) -> (integer 0), because the latter is shorter
-      (1   'bit)         ;; (unsigned-byte 1) -> bit
-      (otherwise  type))))
-       
-(defun normalize-signed-byte-type (type)
-  (declare (type cons type))
-  (let ((bits (or (second type) '*)))
-    (cond
-      ((eq '* bits) 'integer)     ;; (signed-byte *) -> integer, because the latter is shorter
-      ((and +most-positive-fixnum-is-power-of-2-minus-1+
-            +fixnum-is-twos-complement+
-            (eql bits #.(1+ (integer-length most-positive-fixnum))))
-       #||#         'fixnum)      ;; (signed-byte #.(1+ (integer-length most-positive-fixnum))) -> fixnum
-      (t            type))))
-
-(defun normalize-integer-type (type)
-  (declare (type cons type))
-  (let ((lo (or (second type) '*))
-        (hi (or (third  type) '*)))
-    (block nil
-      (when (eq '* hi)
-        (return
-          (if (eq '* lo)
-              (first type)      ;; (integer * *) -> integer
-              `(integer ,lo)))) ;; (integer n *) -> (integer n)
-      
-      (when (is-power-of-2-minus-1? hi)
-        (when (eql 0 lo)
-          (return (normalize-unsigned-byte-type `(unsigned-byte ,(integer-length hi)))))
-        (when (eql (lognot lo) hi)
-          (return (normalize-signed-byte-type `(signed-byte ,(1+ (integer-length hi)))))))
-         
-      type)))
-        
-(defun normalize-type (type)
-  (declare (type (or symbol cons) type))
-  (etypecase type
-    (symbol
-      (case type
-        ;; signed-byte -> integer, for uniformity
-        ;; with (signed-byte *) -> integer above
-        (signed-byte   'integer)
-        ;; unsigned-byte -> (integer 0), for uniformity
-        ;; with (unsigned-byte *) -> (integer 0) above
-        (unsigned-byte '(integer 0))
-        (otherwise     type)))
-    (cons
-     (case (first type)
-       (integer       (normalize-integer-type       type))
-       (signed-byte   (normalize-signed-byte-type   type))
-       (unsigned-byte (normalize-unsigned-byte-type type))
-       (otherwise     #+(and) type
-                      ;; redundant recursion, (mangle) already calls (typexpand)
-                      ;; on each template argument
-                      #-(and)
-                      (loop :for e :in type
-                         :collect (normalize-type e)))))))
-
-(defun typexpand-1 (type &optional env)
-  (declare (type (or symbol cons) type))
-  (normalize-type (introspect-environment:typexpand-1 type env)))
-
-(defun typexpand (type &optional env)
-  (declare (type (or symbol cons) type))
-  (normalize-type (introspect-environment:typexpand type env)))
 
 
 
@@ -222,19 +137,26 @@
     (symbol (mangle-simple-type type))
     (rational (format nil "~A" type))))
 
-(defmethod mangle ((kind symbol) (name symbol) actual-types)
+(defmethod mangle ((kind symbol) (name symbol) actual-types
+		   &key (normalize t))
   (declare (type list actual-types))
-  (setf actual-types (mapcar #'typexpand actual-types))
-  (ecase kind
-    (template-function
-     (concatenate 'string
-		  (symbol-name name) "-"
-		  (mangle-cons-type actual-types)))
-    (template-type
-     (mangle-cons-type (cons name actual-types)))))
+  (when normalize
+    (setf actual-types (normalize-typexpand-types actual-types)))
+  (values
+   (ecase kind
+     (template-function
+      (concatenate 'string
+		   (symbol-name name) "-"
+		   (mangle-cons-type actual-types)))
+     (template-type
+      (mangle-cons-type (cons name actual-types))))
+   actual-types))
 
-(defmethod concretize (kind name actual-types)
+(defmethod concretize (kind name actual-types &key (normalize t))
   (declare (type list actual-types))
-  (let ((mangled-name (mangle kind name actual-types)))
-    (nth-value 0 (intern mangled-name (symbol-package name)))))
+  (multiple-value-bind (mangled-name actual-types*)
+      (mangle kind name actual-types :normalize normalize)
+    (values
+     (intern mangled-name (symbol-package name))
+     actual-types*)))
 

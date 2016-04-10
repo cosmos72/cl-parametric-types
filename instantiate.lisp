@@ -35,32 +35,32 @@
 		 definition))
   (setf (get name kind) definition))
 
-(defmethod instantiate-definition (kind name actual-types definition)
+(defmethod instantiate-definition (kind name actual-types definition &key (normalize t))
   (declare (type list actual-types definition))
   (let* ((formal-types     (second definition))
-	 (definition-form  (third  definition))
-	 (concrete (concretize kind name actual-types)))
-    (unless definition
-      (error "~A ~S has no ~S definition,
+	 (definition-form  (third  definition)))
+    (multiple-value-bind (concrete actual-types*) (concretize kind name actual-types)
+      (unless definition
+	(error "~A ~S has no ~S definition,
 cannot instantiate ~S"
-	     (kind-name kind) name kind (cons name actual-types)))
-    `(progn
-       (in-package ,(package-name (symbol-package name)))
-       ,(multi-subst (cons concrete actual-types)
-		     (cons name formal-types)
-		     definition-form))))
+	       (kind-name kind) name kind (cons name actual-types)))
+      `(progn
+	 (in-package ,(package-name (symbol-package name)))
+	 ,(multi-subst (cons concrete (if normalize actual-types* actual-types))
+		       (cons name formal-types)
+		       definition-form)))))
 
-(defmethod instantiate (kind name actual-types)
+(defmethod instantiate (kind name actual-types &key (normalize t))
   (declare (type list actual-types))
-  (let ((definition (get-definition kind name)))
+  (let ((definition (get-definition kind name))
+	(actual-types (if normalize (normalize-typexpand-types actual-types) actual-types)))
     (etypecase definition
-      (list  (eval (instantiate-definition kind name actual-types definition)))
+      (list  (eval (instantiate-definition kind name actual-types definition :normalize nil)))
       ((or symbol function) (funcall definition name actual-types)))))
 
-(defmethod instantiate* (kind name actual-types)
+(defmethod instantiate* (kind name actual-types &key (normalize t))
   (declare (type list actual-types))
-  (let ((abstract (cons name actual-types))
-	(concrete (concretize kind name actual-types)))
+  (multiple-value-bind (concrete actual-types*) (concretize kind name actual-types)
     (handler-case
 	(progn
 	  (ecase kind
@@ -68,8 +68,9 @@ cannot instantiate ~S"
 	    (template-type     (find-class concrete))))
       (condition ()
 	(log.debug "instantiating ~A ~S as ~S~%"
-                   (kind-name kind) abstract concrete)
-	(setf concrete (instantiate kind name actual-types))))
+                   (kind-name kind) (cons name actual-types) concrete)
+	(setf concrete (instantiate kind name (if normalize actual-types* actual-types)
+				    :normalize nil))))
     concrete))
 
 

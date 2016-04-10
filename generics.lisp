@@ -16,11 +16,13 @@
 (in-package #:cl-parametric-types)
 
 
-(defgeneric mangle (kind name actual-types)
+(defgeneric mangle (kind name actual-types &key normalize)
   (:documentation
    "Given the symbol name of a parametric function, class or struct
  and the actual types to instantiate it on,
 return a string containing a mangled concatenation of the name and actual types.
+Return as additional value
+\(IF NORMALIZE (NORMALIZE-TYPEXPAND-TYPES ACTUAL-TYPES) ACTUAL-TYPES)
 
 For example, (MANGLE 'TEMPLATE-TYPE 'PAIR '(CONS HASH-TABLE)) returns
 \"<PAIR.CONS.HASH-TABLE>\"
@@ -30,7 +32,7 @@ while (MANGLE 'TEMPLATE-FUNCTION 'LESS '(FIXNUM)) returns
 The actual mangling algorithm is subject to change,
 the only guarantee is that it must be reversible"))
 
-(defgeneric concretize (kind name actual-types)
+(defgeneric concretize (kind name actual-types &key normalize)
   (:documentation
    "Given the symbol name of a parametric function, class or struct
 and the actual types to instantiate it on,
@@ -40,7 +42,11 @@ class or struct. Such symbol must contain a mangled concatenation of the name
 and actual types.
 
 Default implementation is
-\(NTH-VALUE 0 (INTERN (MANGLE KIND NAME ACTUAL-TYPES) (SYMBOL-PACKAGE NAME)))"))
+\(MULTIPLE-VALUE-BIND (MANGLED-NAME ACTUAL-TYPES*)
+      (MANGLE KIND NAME ACTUAL-TYPES :NORMALIZE NORMALIZE)
+    (VALUES
+     (INTERN MANGLED-NAME (SYMBOL-PACKAGE NAME))
+     ACTUAL-TYPES*))"))
 
 (defgeneric get-definition (kind name)
   (:documentation
@@ -57,17 +63,18 @@ Default implementation is
 Default implementation is
 \(SETF (GET NAME KIND) DEFINITION)"))
 
-(defgeneric instantiate-definition (kind name actual-types definition)
+(defgeneric instantiate-definition (kind name actual-types definition
+				    &key normalize)
   (:documentation
    "Given the definition of a parametric function, class or struct,
 actually instantiate it using the specified actual types"))
 
-(defgeneric instantiate (kind name actual-types)
+(defgeneric instantiate (kind name actual-types &key normalize)
   (:documentation
    "Find the definition of a parametric function, class or struct,
 and actually instantiate it using the specified actual types"))
 
-(defgeneric instantiate* (kind name actual-types)
+(defgeneric instantiate* (kind name actual-types &key normalize)
   (:documentation
    "If a parametric function, class or struct is not yet instantiated
 on the specified actual types, then instantiate it.
