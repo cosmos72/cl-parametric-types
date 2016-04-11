@@ -12,20 +12,36 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
+#|
+
+This file does XXX.
+
+
+|#
+
+
+
 
 (in-package #:cl-parametric-types)
 
 (defun recurse-first-atom (thing)
+  "Returns the first element of a cons tree. e.g. (((a) b) c) -> a"
   (loop :while (consp thing) :do
      (setf thing (first thing)))
   thing)
 
 (defun first-atom (thing)
+  "Returns the first element of a cons, or itself when THING is an atom.
+   e.g. (a b) -> a
+          a   -> a"
   (if (consp thing)
       (first thing)
       thing))
 
 (defun lambda-list->args (lambda-list)
+  "remove the lamda-list keywords (&key etc.) and default values from a lambda list.
+e.g. (a b &optional (c 1)) -> (a b c)
+"
   (declare (type list lambda-list))
   (loop :for e :in lambda-list
      :for arg = (first-atom e)
@@ -91,7 +107,7 @@
 	   (when (and have<> others)
 	     (return-from fun nil))))
       (zerop depth))))
-	     		   
+
 
 (defun mangle-simple-type-name (name)
   (declare (type string name))
@@ -112,7 +128,7 @@
 		mangle-cons-type)
 	 (ftype (function ((or cons symbol rational)) (values string &optional))
 		mangle-any-type))
-	 
+
 
 (defun mangle-simple-type (type)
   (declare (type symbol type))
@@ -128,7 +144,7 @@
 	 (princ #\. s))
        (princ (mangle-any-type (first list)) s))
     (princ #\> s)))
-    
+
 
 (defun mangle-any-type (type)
   (declare (type (or cons symbol rational) type))

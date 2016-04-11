@@ -12,6 +12,12 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
+#|
+
+This file does XXX.
+
+
+|#
 
 (in-package #:cl-parametric-types)
 
@@ -23,7 +29,7 @@
   (eql (lognot most-negative-fixnum) most-positive-fixnum))
 
 (declaim (ftype (function ((or symbol cons)) (values (or symbol cons) &optional)) normalize-type))
-		
+
 (declaim (inline is-power-of-2-minus-1?))
 (defun is-power-of-2-minus-1? (n)
   (declare (type integer n))
@@ -41,7 +47,7 @@
       ((*) '(integer 0)) ;; (unsigned-byte *) -> (integer 0), because the latter is shorter
       (1   'bit)         ;; (unsigned-byte 1) -> bit
       (otherwise  type))))
-       
+
 (defun normalize-signed-byte-type (type)
   (declare (type cons type))
   (let ((bits (or (second type) '*)))
@@ -70,7 +76,7 @@
           (return (normalize-unsigned-byte-type `(unsigned-byte ,(integer-length hi)))))
         (when (eql (lognot lo) hi)
           (return (normalize-signed-byte-type `(signed-byte ,(1+ (integer-length hi)))))))
-         
+      
       type)))
 
 (defun normalize-array-type (type)
@@ -125,7 +131,7 @@
   #+clisp
   (ext:type-expand type env))
 
-  
+
 #-(or ccl clisp cmucl sbcl)
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (error "no known implementation of TYPEXPAND on this platform,

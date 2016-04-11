@@ -12,7 +12,6 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
-
 (in-package #:cl-parametric-types)
 
 (template-struct (&optional (<t1> t) (<t2> t))
@@ -24,4 +23,4 @@
   (defun less (a b)
     (declare (type <t> a b))
     (< a b)))
-		     
+

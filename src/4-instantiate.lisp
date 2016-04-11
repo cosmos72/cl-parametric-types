@@ -12,6 +12,12 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
+#|
+
+This file does XXX.
+
+
+|#
 
 (in-package #:cl-parametric-types)
 

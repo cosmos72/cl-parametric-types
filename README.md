@@ -1,6 +1,8 @@
 CL-PARAMETRIC-TYPES
 ===================
 
+[![Build Status](https://travis-ci.org/guicho271828/cl-parametric-types.svg?branch=master)](https://travis-ci.org/guicho271828/cl-parametric-types)
+
 Summary
 -------
 CL-PARAMETRIC-TYPES adds C++-style template classes, structs and functions to Common Lisp.
