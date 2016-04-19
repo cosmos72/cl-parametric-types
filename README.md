@@ -62,7 +62,7 @@ CL-PARAMETRIC-TYPES exports the following macros:
   Note: `TEMPLATE` accepts arbitrary lambda-lists as its arguments, including optional arguments,
   keyword arguments, and &rest as for example:
 
-        (template (&optional (<t1> real) (<t2> real))
+        (template (&optional (<t1> 'real) (<t2> 'real))
           (defun less (a b)
             (declare (type <t1> a)
                      (type <t2> b))
