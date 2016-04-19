@@ -72,8 +72,8 @@ cannot instantiate ~S"
           (template-type                         (find-class concrete))
           ((template-function template-accessor) (fdefinition concrete)))
       (condition ()
-	(log.debug "; instantiating ~A ~S as ~S~%"
-                   (kind-name kind) (cons name actual-types) concrete)
+	(log.debug "; instantiating ~A ~A as ~S~%"
+                   (kind-name kind) (format nil "~S" (cons name actual-types)) concrete)
 	(setf concrete (instantiate kind name (if normalize actual-types* actual-types)
 				    :normalize nil))))
     concrete))

@@ -79,6 +79,18 @@ This file does XXX.
       
       type)))
 
+(defun normalize-member-type (type)
+  (declare (type cons type))
+  (let ((t1 (cadr type))
+        (t2 (caddr type)))
+    (if (and
+         (cddr type)
+         (null (cdddr type))
+         (or (and (eq t t1) (eq nil t2))
+             (and (eq t t2) (eq nil t1))))
+        'boolean
+        type)))
+
 (defun normalize-array-type (type)
   (declare (type cons type))
   (let ((array-type   (first type))
@@ -117,6 +129,7 @@ This file does XXX.
        (integer       (normalize-integer-type       type))
        (signed-byte   (normalize-signed-byte-type   type))
        (unsigned-byte (normalize-unsigned-byte-type type))
+       (member        (normalize-member-type type))
        ((array  simple-array  vector)        (normalize-array-type type))
        ((string simple-string simple-vector) (normalize-simple-vector-type type))
        (otherwise     (cons (first type)
