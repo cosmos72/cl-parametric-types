@@ -121,8 +121,8 @@ CL-PARAMETRIC-TYPES exports the following macros:
              (second :type <t2>))))
              
 Unlike C++ templates, where you must declare if the arguments of `template<...>` are types or values
-(and if they are values, you must declare their type), the arguments of `TEMPLATE-FUNCTION`,
-`TEMPLATE-STRUCT` and `TEMPLATE-CLASS` can be anything, not only types.
+(and if they are values, you must declare their type), the arguments of `TEMPLATE` can be anything,
+not only types.
 
 Invoking template functions
 ---------------------------
