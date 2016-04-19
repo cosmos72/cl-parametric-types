@@ -44,6 +44,27 @@ This file does XXX.
      :collect
      (define-struct-accessor name template-args template-types slot-description)))
 
+(defun define-struct-make&copy (struct-name template-args template-types)
+  (declare (type symbol struct-name)
+	   (type list template-args template-types))
+  (let* ((package (symbol-package struct-name))
+         (struct-name-s (symbol-name struct-name))
+         (make-name-s (concatenate 'string (symbol-name 'make) "-" struct-name-s))
+         (make-name (intern make-name-s package))
+         (copy-name-s (concatenate 'string (symbol-name 'copy) "-" struct-name-s))
+         (copy-name (intern copy-name-s package))
+         (args (gensym (symbol-name 'args)))
+         (concrete-function (gensym (symbol-name 'concrete-function))))
+    `((defmacro ,make-name ((,@template-args) &rest ,args)
+       (let ((,concrete-function (instantiate* 'template-function 'make
+                                               `((,',struct-name ,,@template-types)))))
+         `(,,concrete-function ,@,args)))
+      (defmacro ,copy-name ((,@template-args) &rest ,args)
+        (let ((,concrete-function (instantiate* 'template-function 'copy
+                                                `((,',struct-name ,,@template-types)))))
+          `(,,concrete-function ,@,args))))))
+        
+
 (defmacro make ((&rest template-args) &rest function-args)
   (let ((concrete-function (instantiate* 'template-function 'make `(,@template-args))))
     `(,concrete-function ,@function-args)))

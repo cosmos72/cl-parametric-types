@@ -39,10 +39,11 @@ Basic usage
 -----------
 CL-PARAMETRIC-TYPES exports the following macros:
 
-- `TEMPLATE-FUNCTION` declares that a function is parametric, i.e. that the "abstract" source code you provide
-  will be later instantiated on "concrete" types. For example,
+- `TEMPLATE` declares that one or more functions, structs or objects are parametric,
+  i.e. that the "abstract" source code you provide will be later instantiated
+  on "concrete" types. For example,
 
-        (template-function (<t>)
+        (template (<t>)
           (defun less (a b)
             (declare (type <t> a b))
             (< a b)))
@@ -58,21 +59,19 @@ CL-PARAMETRIC-TYPES exports the following macros:
   i.e. both instruct the compiler that a function `LESS` exists, and it in order to actually compile
   and use it, it must be instantiated first, i.e. specialized, on a single type (&lt;t&gt; in CL, T in C++)
 
-  Note: `TEMPLATE-FUNCTION` accepts arbitrary lambda-lists as its arguments, including optional arguments,
+  Note: `TEMPLATE` accepts arbitrary lambda-lists as its arguments, including optional arguments,
   keyword arguments, and &rest as for example:
 
-        (template-function (&optional (<t1> real) (<t2> real))
+        (template (&optional (<t1> real) (<t2> real))
           (defun less (a b)
             (declare (type <t1> a)
                      (type <t2> b))
             (< a b)))
   
+  `TEMPLATE` can also be used with `DEFSTRUCT` to declare that a structure-object is parametric.
+  For example,
 
-- `TEMPLATE-STRUCT` declares that a structure-object is parametric,
-  i.e. that the "abstract" source code you provide  will be later instantiated
-  on "concrete" types. For example,
-
-        (template-struct (&optional (<t1> t) (<t2> t))
+        (template (&optional (<t1> t) (<t2> t))
           (defstruct pair
             (first  nil :type <t1>)
             (second nil :type <t2>)))
@@ -86,31 +85,41 @@ CL-PARAMETRIC-TYPES exports the following macros:
             T2 second;
         }
 
-  Note: also `TEMPLATE-STRUCT` accepts arbitrary lambda-lists as its arguments, including optional arguments,
-  keyword arguments, and &rest.
-  
-- `TEMPLATE-CLASS` declares that a standard-object is parametric,
-  i.e. that the "abstract" source code you provide  will be later instantiated
+  Finally, `TEMPLATE` can also be used with `DEFCLASS` to declare that a standard-object
+  is parametric, i.e. that the "abstract" source code you provide  will be later instantiated
   on "concrete" types. For example,
 
-        (template-class (&optional (<t1> t) (<t2> t))
-          (defclass pair ()
+        (template (&optional (<t1> t) (<t2> t))
+          (defclass pair2 ()
             ((first  :type <t1>)
              (second :type <t2>))))
 
   is conceptually equivalent to the following C++ code
 
         template<class T, class T2>
-        class pair
+        class pair2
         {
         private:
             T1 first;
             T2 second;
         }
 
-  Note: also `TEMPLATE-CLASS` accepts arbitrary lambda-lists as its arguments, including optional arguments,
-  keyword arguments, and &rest.
-
+  It is also possible to combine multiple functions, structures and classes definitions
+  in a single `TEMPLATE`, as long as all functions, structures and classes share
+  the same template arguments:
+  
+        (template (&optional (<t1> 'real) (<t2> 'real))
+          (defun less (a b)
+            (declare (type <t1> a)
+                     (type <t2> b))
+            (< a b))
+          (defstruct pair
+            (first  nil :type <t1>)
+            (second nil :type <t2>))
+          (defclass pair2 ()
+            ((first  :type <t1>)
+             (second :type <t2>))))
+             
 Unlike C++ templates, where you must declare if the arguments of `template<...>` are types or values
 (and if they are values, you must declare their type), the arguments of `TEMPLATE-FUNCTION`,
 `TEMPLATE-STRUCT` and `TEMPLATE-CLASS` can be anything, not only types.
@@ -118,22 +127,24 @@ Unlike C++ templates, where you must declare if the arguments of `template<...>`
 Invoking template functions
 ---------------------------
 
-When a function is declared TEMPLATE-FUNCTION, a macro is actually created
-with its name, to instantiate the appropriate function and to dispatch at compile time.
+When a function is declared TEMPLATE, a macro is actually created with its name,
+to instantiate the appropriate function and to dispatch at compile time.
 
-For example, after
+For example,
 
-        (template-class (&optional (<t1> t) (<t2> t))
-          (defclass pair ()
+        (template (&optional (<t1> t) (<t2> t))
+          (defstruct pair ()
             ((first  :type <t1>)
              (second :type <t2>))))
 
-The macros `MAKE`, `COPY`, `PAIR-FIRST` and `PAIR-SECOND` are available,
-and both `(SETF PAIR-FIRST)` and `(SETF PAIR-SECOND)` work as expected,
-provided that you explicitly pass to each macro the actual template arguments
-you want to use:
+defines the parametric type `PAIR`, and also defines the symbols `MAKE-PAIR`, `COPY-PAIR`,
+`PAIR-FIRST` and `PAIR-SECOND` as macros that, before all the usual parameters,
+expect an additional one - the list actual template arguments you want to use:
 
-        (make ((pair bit fixnum)) :first 1 :second 2)
+        ;; i.e. instead of (MAKE-PAIR :FIRST 1 :SECOND 2) you must also specify
+        ;; the concrete types to instantiate PAIR and MAKE-PAIR:
+        ;;
+        (make-pair (bit fixnum) :first 1 :second 2)
         ; instantiating template-type (PAIR BIT FIXNUM) as <PAIR.BIT.FIXNUM>
         #S(<PAIR.BIT.FIXNUM> :FIRST 1 :SECOND 2)
         
@@ -142,6 +153,8 @@ you want to use:
 
         (pair-first (bit fixnum) *pair*)
         1
+
+Also, `(SETF PAIR-FIRST)` and `(SETF PAIR-SECOND)` work as expected:
 
         (setf (pair-first (bit fixnum) *pair*) 0)
         0
@@ -154,7 +167,7 @@ Appendix: design philosophy
 ---------------------------
 
 Short version: maximum performance, zero runtime overhead, compile-time instantiation,
-  compile-time overload resolution.
+  compile-time overload resolution (i.e. dispatching).
 
 Long version: to be written...
 

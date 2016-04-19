@@ -22,6 +22,11 @@ This file does XXX.
 (in-package #:cl-parametric-types)
 
 
+(defmacro template-declaim
+    ((&rest template-args)
+	(declaim &rest declaration-specifiers)))
+
+
 (defmacro template-function
     ((&rest template-args)
 	(defun name lambda-list &body body))
@@ -52,6 +57,7 @@ This file does XXX.
 	       '(template-struct ,template-types
 		 (,defstruct ,name-and-options
 		   ,@slot-descriptions))))
+       ,@(define-struct-make&copy name template-args template-types)
        ,@(define-struct-accessors name template-args template-types slot-descriptions)
        ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
        (deftype ,name ,template-args
@@ -87,17 +93,32 @@ This file does XXX.
      `(template-struct ,template-args
 	(defstruct ,name ,@body)))))
 
+(defmacro template*
+    ((&rest template-args) (&rest options)
+     &body template-definitions)
+  (declare (ignore options))
+  (let ((forms
+         (loop :for definition :in template-definitions
+            :collect
+            (destructuring-bind (defclass-defstruct-or-defun name &body body) definition
+              (ecase defclass-defstruct-or-defun
+                ((defclass)
+                 `(template-class ,template-args
+                                  (defclass ,name ,@body)))
+                ((defstruct)
+                 `(template-struct ,template-args
+                                   (defstruct ,name ,@body)))
+                ((defun)
+                 `(template-function ,template-args
+                                     (defun ,name ,@body))))))))
+    (if (rest forms)
+        `(progn ,@forms)
+        (first forms))))
+
 
 (defmacro template
     ((&rest template-args)
-	(defclass-defstruct-or-defun name &body body))
-  (ecase defclass-defstruct-or-defun
-    ((defclass)
-     `(template-class ,template-args
-	(defclass ,name ,@body)))
-    ((defstruct)
-     `(template-struct ,template-args
-	(defstruct ,name ,@body)))
-    ((defun)
-     `(template-function ,template-args
-	(defun ,name ,@body)))))
+     &body template-definitions)
+  `(template* ,template-args ()
+     ,@template-definitions))
+
