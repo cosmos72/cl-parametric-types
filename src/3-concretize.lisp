@@ -154,10 +154,10 @@ e.g. (a b &optional (c 1)) -> (a b c)
     (rational (format nil "~A" type))))
 
 (defmethod mangle ((kind symbol) (name symbol) actual-types
-		   &key (normalize t))
+		   &key (simplify t))
   (declare (type list actual-types))
-  (when normalize
-    (setf actual-types (normalize-typexpand-types actual-types)))
+  (when simplify
+    (setf actual-types (simplify-typexpand-list actual-types)))
   (values
    (ecase kind
      (template-type
@@ -177,10 +177,10 @@ e.g. (a b &optional (c 1)) -> (a b c)
         (concatenate 'string concrete-struct "-" (symbol-name name)))))
    actual-types))
 
-(defmethod concretize (kind name actual-types &key (normalize t))
+(defmethod concretize (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
   (multiple-value-bind (mangled-name actual-types*)
-      (mangle kind name actual-types :normalize normalize)
+      (mangle kind name actual-types :simplify simplify)
     (let* ((symbol
             (case kind
               ;; for template-accessors, use the package where the struct is defined

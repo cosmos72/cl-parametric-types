@@ -14,7 +14,7 @@
 
 
 (asdf:defsystem #:cl-parametric-types
-  :version "0.0.0"
+  :version "0.0.1"
   :author "Massimiliano Ghilardi"
   :license "LLGPL"
   :description "C++-style templates for Common Lisp"
@@ -24,9 +24,10 @@
   ((:file "0-package")
    (:file "1-log"          :depends-on ("0-package"))
    (:file "1-generics"     :depends-on ("0-package"))
-   (:file "2-normalize"    :depends-on ("1-generics"))
-   (:file "3-concretize"   :depends-on ("2-normalize"))
-   (:file "4-instantiate"  :depends-on ("3-concretize" "1-log"))
    (:file "1-struct"       :depends-on ("0-package"))
-   (:file "5-template"     :depends-on ("4-instantiate" "1-struct"))))
+   (:file "2-simplify"     :depends-on ("1-generics"))
+   (:file "2-normalize"    :depends-on ("2-simplify"))
+   (:file "3-concretize"   :depends-on ("2-simplify"))
+   (:file "4-instantiate"  :depends-on ("1-log"    "3-concretize"))
+   (:file "5-template"     :depends-on ("1-struct" "4-instantiate"))))
 

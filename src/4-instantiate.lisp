@@ -41,7 +41,7 @@ This file does XXX.
 		 definition))
   (setf (get name kind) definition))
 
-(defmethod instantiate-definition (kind name actual-types definition &key (normalize t))
+(defmethod instantiate-definition (kind name actual-types definition &key (simplify t))
   (declare (type list actual-types definition))
   (let* ((formal-types     (second definition))
 	 (definition-form  (third  definition)))
@@ -52,19 +52,19 @@ cannot instantiate ~S"
 	       (kind-name kind) name kind (cons name actual-types)))
       `(progn
 	 (in-package ,(package-name (symbol-package name)))
-	 ,(multi-subst (cons concrete (if normalize actual-types* actual-types))
+	 ,(multi-subst (cons concrete (if simplify actual-types* actual-types))
 		       (cons name formal-types)
 		       definition-form)))))
 
-(defmethod instantiate (kind name actual-types &key (normalize t))
+(defmethod instantiate (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
   (let ((definition (get-definition kind name))
-	(actual-types (if normalize (normalize-typexpand-types actual-types) actual-types)))
+	(actual-types (if simplify (simplify-typexpand-list actual-types) actual-types)))
     (etypecase definition
-      (list  (eval (instantiate-definition kind name actual-types definition :normalize nil)))
+      (list  (eval (instantiate-definition kind name actual-types definition :simplify nil)))
       ((or symbol function) (funcall definition name actual-types)))))
 
-(defmethod instantiate* (kind name actual-types &key (normalize t))
+(defmethod instantiate* (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
   (multiple-value-bind (concrete actual-types*) (concretize kind name actual-types)
     (handler-case
@@ -74,8 +74,8 @@ cannot instantiate ~S"
       (condition ()
 	(log.debug "; instantiating ~A ~A as ~S~%"
                    (kind-name kind) (format nil "~S" (cons name actual-types)) concrete)
-	(setf concrete (instantiate kind name (if normalize actual-types* actual-types)
-				    :normalize nil))))
+	(setf concrete (instantiate kind name (if simplify actual-types* actual-types)
+				    :simplify nil))))
     concrete))
 
 

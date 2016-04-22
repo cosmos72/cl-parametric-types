@@ -13,144 +13,84 @@
 ;; See the Lisp Lesser General Public License for more details.
 
 #|
-
-This file does XXX.
-
-
+Functions to normalize types, i.e. to replace:
+  BIT               -> (INTEGER 0 1)
+  FIXNUM            -> (INTEGER MOST-NEGATIVE-FIXNUM MOST-POSITIVE-FIXNUM)
+  SIGNED-BYTE       -> (INTEGER * *)
+  UNSIGNED-BYTE     -> (INTEGER 0 *)
+  (SIGNED-BYTE N)   -> (INTEGER (LOGNOT (ASH 1 (1- N))) (ASH 1 (1- N)))
+  (UNSIGNED-BYTE N) -> (INTEGER 0 (ASH 1 N))
+  INTEGER           -> (INTEGER * *)
+  (INTEGER N)       -> (INTEGER N *)
+  SINGLE-FLOAT      -> (SINGLE-FLOAT * *)
+  (SINGLE-FLOAT N)  -> (SINGLE-FLOAT N *)
+  DOUBLE-FLOAT      -> (DOUBLE-FLOAT * *)
+  (DOUBLE-FLOAT N)  -> (DOUBLE-FLOAT N *)
+  array-type        -> (array-type * *)
+  string-type       -> (string-type *)
+  BOOLEAN           -> (MEMBER T NIL)
 |#
 
 (in-package #:cl-parametric-types)
 
-(defconstant +most-positive-fixnum-is-power-of-2-minus-1+
-  (let ((n most-positive-fixnum))
-    (zerop (logand n (1+ n)))))
-
-(defconstant +fixnum-is-twos-complement+
-  (eql (lognot most-negative-fixnum) most-positive-fixnum))
-
 (declaim (ftype (function ((or symbol cons)) (values (or symbol cons) &optional)) normalize-type))
 
-(declaim (inline is-power-of-2-minus-1?))
-(defun is-power-of-2-minus-1? (n)
-  (declare (type integer n))
-  (if (typep n 'fixnum)
-      (if (< n most-positive-fixnum)
-          (zerop (logand n (1+ n)))
-          +most-positive-fixnum-is-power-of-2-minus-1+)
-      ;; slow bignum arithmetic
-      (zerop (logand n (1+ n)))))
-
-(defun normalize-unsigned-byte-type (type)
+(defun normalize-type-unsigned-byte (type)
   (declare (type cons type))
   (let ((bits (or (second type) '*)))
-    (case bits
-      ((*) '(integer 0)) ;; (unsigned-byte *) -> (integer 0), because the latter is shorter
-      (1   'bit)         ;; (unsigned-byte 1) -> bit
-      (otherwise  type))))
+    (if (eq '* bits)
+        '(integer 0 *)
+        `(integer 0 ,(ash 1 bits)))))
 
-(defun normalize-signed-byte-type (type)
+(defun normalize-type-signed-byte (type)
   (declare (type cons type))
   (let ((bits (or (second type) '*)))
-    (cond
-      ((eq '* bits) 'integer) ;; (signed-byte *) -> integer, because the latter is shorter
-      ((and +most-positive-fixnum-is-power-of-2-minus-1+
-            +fixnum-is-twos-complement+
-            (eql bits #.(1+ (integer-length most-positive-fixnum))))
-       #||#   'fixnum)        ;; (signed-byte #.the-right-number-of-bits) -> fixnum
-      (t      type))))
+    (if (eq '* bits)
+        '(integer * *)
+        (let ((n-max (ash 1 (1- bits))))
+          `(integer ,(lognot n-max) ,n-max)))))
 
-(defun normalize-integer-type (type)
+(defun normalize-type-real (type)
   (declare (type cons type))
-  (let ((integer (first type))
+  (let ((first (first type))
         (lo (or (second type) '*))
         (hi (or (third  type) '*)))
-    (block nil
-      (when (eq '* hi)
-        (return
-          (if (eq '* lo)
-              integer              ;; (integer * *) -> integer
-              (list integer lo)))) ;; (integer n *) -> (integer n)
+    `(,first ,lo ,hi)))
 
-      (when (is-power-of-2-minus-1? hi)
-        (when (eql 0 lo)
-          (return (normalize-unsigned-byte-type `(unsigned-byte ,(integer-length hi)))))
-        (when (eql (lognot lo) hi)
-          (return (normalize-signed-byte-type `(signed-byte ,(1+ (integer-length hi)))))))
-      
-      type)))
-
-(defun normalize-member-type (type)
-  (declare (type cons type))
-  (let ((t1 (cadr type))
-        (t2 (caddr type)))
-    (if (and
-         (cddr type)
-         (null (cdddr type))
-         (or (and (eq t t1) (eq nil t2))
-             (and (eq t t2) (eq nil t1))))
-        'boolean
-        type)))
-
-(defun normalize-array-type (type)
+(defun normalize-type-array (type)
   (declare (type cons type))
   (let ((array-type   (first type))
-	(element-type (or (normalize-type (second type)) '*))
-        (dimensions   (or (third  type) '*)))
-    (block nil
-      (when (eq '* dimensions)
-        (return
-          (if (eq '* element-type)
-              array-type      ;; (array * *) -> array
-              (list array-type element-type)))) ;; (array el-type *) -> (array el-type)
-      
-      (list array-type element-type dimensions))))
-
-(defun normalize-simple-vector-type (type)
-  (declare (type cons type))
-  (let ((dimensions (or (second type) '*)))
-    (if (eq '* dimensions)
-	(first type) ;; (simple-vector *) -> simple-vector
-	type)))
+        (element-type (or (normalize-type (second type)) '*))
+        (dimensions   (or (third type) '*)))
+    (list array-type element-type dimensions)))
 
 (defun normalize-type (type)
   (declare (type (or symbol cons) type))
   (etypecase type
     (symbol
-      (case type
-        ;; signed-byte -> integer, for uniformity
-        ;; with (signed-byte *) -> integer above
-        (signed-byte   'integer)
-        ;; unsigned-byte -> (integer 0), for uniformity
-        ;; with (unsigned-byte *) -> (integer 0) above
-        (unsigned-byte '(integer 0))
-        (otherwise     type)))
+     (case type
+       (bit                         '(integer 0 1))
+       (fixnum                      '(integer #.most-negative-fixnum #.most-positive-fixnum))
+       (unsigned-byte               '(integer 0 *))
+       ((signed-byte  integer)      '(integer * *))
+       ((single-float double-float) `(type * *))
+       ((string simple-string simple-base-string vector simple-vector bit-vector simple-bit-vector)
+        `(,type *))
+       ((array simple-array) `(,type * *))
+       (boolean                     '(member t nil))
+       (otherwise     type)))
     (cons
      (case (first type)
-       (integer       (normalize-integer-type       type))
-       (signed-byte   (normalize-signed-byte-type   type))
-       (unsigned-byte (normalize-unsigned-byte-type type))
-       (member        (normalize-member-type type))
-       ((array  simple-array  vector)        (normalize-array-type type))
-       ((string simple-string simple-vector) (normalize-simple-vector-type type))
+       (signed-byte   (normalize-type-signed-byte   type))
+       (unsigned-byte (normalize-type-unsigned-byte type))
+       ((integer single-float double-float)        (normalize-type-real type))
+       ((array        simple-array  vector)        (normalize-type-array type))
+       (member        type)
        (otherwise     (cons (first type)
-			    (loop :for e :in (rest type)
-			       :collect (normalize-type e))))))))
+                            (loop :for e :in (rest type)
+                               :collect (normalize-type e))))))))
 
-
-(defun typexpand (type &optional env)
-  (declare (type (or symbol cons) type))
-  #+(or ccl cmucl sbcl)
-  (introspect-environment:typexpand type env)
-  #+clisp
-  (ext:type-expand type env))
-
-
-#-(or ccl clisp cmucl sbcl)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (error "no known implementation of TYPEXPAND on this platform,
-  cannot compile CL-PARAMETRIC-TYPES"))
-
-(defun normalize-typexpand-types (types)
+(defun normalize-typexpand-list (types)
   (declare (type list types))
    (loop :for type :in types
       :collect (normalize-type (typexpand type))))

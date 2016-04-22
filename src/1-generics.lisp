@@ -22,7 +22,7 @@ This file does XXX.
 (in-package #:cl-parametric-types)
 
 
-(defgeneric mangle (kind name actual-types &key normalize)
+(defgeneric mangle (kind name actual-types &key simplify)
   (:documentation
    "Given the symbol name of a parametric function, class or struct
  and the actual types to instantiate it on,
@@ -38,7 +38,7 @@ while (MANGLE 'TEMPLATE-FUNCTION 'LESS '(FIXNUM)) returns
 The actual mangling algorithm is subject to change,
 the only guarantee is that it must be reversible"))
 
-(defgeneric concretize (kind name actual-types &key normalize)
+(defgeneric concretize (kind name actual-types &key simplify)
   (:documentation
    "Given the symbol name of a parametric function, class or struct
 and the actual types to instantiate it on,
@@ -70,17 +70,17 @@ Default implementation is
 \(SETF (GET NAME KIND) DEFINITION)"))
 
 (defgeneric instantiate-definition (kind name actual-types definition
-				    &key normalize)
+				    &key simplify)
   (:documentation
    "Given the definition of a parametric function, class or struct,
 actually instantiate it using the specified actual types"))
 
-(defgeneric instantiate (kind name actual-types &key normalize)
+(defgeneric instantiate (kind name actual-types &key simplify)
   (:documentation
    "Find the definition of a parametric function, class or struct,
 and actually instantiate it using the specified actual types"))
 
-(defgeneric instantiate* (kind name actual-types &key normalize)
+(defgeneric instantiate* (kind name actual-types &key simplify)
   (:documentation
    "If a parametric function, class or struct is not yet instantiated
 on the specified actual types, then instantiate it.
