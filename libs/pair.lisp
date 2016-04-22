@@ -14,12 +14,12 @@
 
 (in-package #:cl-parametric-types)
 
-(template-struct (&optional (<t1> t) (<t2> t))
+(template (&optional (<t1> t) (<t2> t))
   (defstruct pair
     (first nil  :type <t1>)
     (second nil :type <t2>)))
 
-(template-function (&optional (<t> t))
+(template (&optional (<t> t))
   (defun less (a b)
     (declare (type <t> a b))
     (< a b)))

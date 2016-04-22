@@ -18,7 +18,7 @@
   :author "Massimiliano Ghilardi"
   :license "LLGPL"
   :description "Test system for cl-parametric-types"
-  :depends-on (:fiveam :cl-parametric-types)
+  :depends-on (:fiveam :cl-parametric-types :cl-parametric-types.libs)
   :pathname "test/"
   :components
   ((:file "package")))
