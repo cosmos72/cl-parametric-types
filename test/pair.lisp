@@ -12,16 +12,25 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
+(in-package :cl-parametric-types.test)
 
-(asdf:defsystem :cl-parametric-types.test
-  :version "0.0.1"
-  :author "Massimiliano Ghilardi"
-  :license "LLGPL"
-  :description "Test system for cl-parametric-types"
-  :depends-on (:fiveam :cl-parametric-types :cl-parametric-types.libs)
-  :pathname "test/"
-  :components
-  ((:file "package")
-   (:file "less"       :depends-on ("package"))
-   (:file "pair"       :depends-on ("package"))))
+(def-suite pair :in suite)
+(in-suite pair)
+
+(template (&optional (<t1> t) (<t2> t))
+  (defstruct pair
+    (first  nil :type <t1>)
+    (second nil :type <t2>))
+  (defun pair-less (a b)
+    (and (< (pair-first (<t1>) a) (pair-first (<t2>) b))
+         (< (pair-second (<t1>) a) (pair-second (<t2>) b)))))
+
+(def-test pair (:compile-at :definition-time)
+  (is-true
+   (progn
+     (pair-less
+      (fixnum fixnum)
+      (make-pair (fixnum fixnum) :first 1 :second 2)
+      (make-pair (fixnum fixnum) :first 3 :second 4)))))
+
 
