@@ -19,10 +19,16 @@
 
   (:use #:cl)
 
-  (:export #:template-class #:template-struct #:template-type
-	   #:template-function #:template
+  (:export #:template
 
            #:make #:copy #:typexpand
 
+           #:instantiate-type     #:instantiate-function
+           #:instantiate-accessor #:instantiate-constructor
+           
            #:mangle   #:concretize  #:get-definition
-           #:instantiate-definition #:instantiate  #:instantiate*))
+           #:instantiate-definition #:instantiate  #:instantiate*
+
+           #:template-type     #:template-struct   #:template-class
+	   #:template-function #:template-accessor #:template-constructor))
+

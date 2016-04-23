@@ -98,3 +98,23 @@ cannot instantiate ~S"
     concrete))
 
 
+(defun instantiate-type (name-and-actual-types)
+  (declare (type cons name-and-actual-types))
+  (instantiate* 'template-type (first name-and-actual-types)
+                (rest name-and-actual-types)))
+
+(defun instantiate-function (name actual-types)
+  (declare (type symbol name)
+           (type list actual-types))
+  (instantiate* 'template-function name actual-types))
+
+(defun instantiate-accessor (name struct-name-and-actual-types)
+  (declare (type symbol name)
+           (type cons struct-name-and-actual-types))
+  (instantiate* 'template-accessor name struct-name-and-actual-types))
+
+(defun instantiate-constructor (name struct-name-and-actual-types)
+  (declare (type symbol name)
+           (type cons struct-name-and-actual-types))
+  (instantiate* 'template-constructor name struct-name-and-actual-types))
+
