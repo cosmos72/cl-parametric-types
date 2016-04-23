@@ -12,14 +12,23 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
+(in-package #:cl-parametric-types.stl)
 
-(asdf:defsystem #:cl-parametric-types.libs
-  :version "0.0.0"
-  :author "Massimiliano Ghilardi"
-  :license "LLGPL"
-  :description "C++-style templates for Common Lisp. STL implementations"
-  :depends-on (:cl-parametric-types)
-  :pathname "libs/"
-  :components
-  ((:file "pair")))
+(template (&optional (<t> 'real))
+  (defun less (a b)
+    (declare (type <t> a b))
+    (< a b))
+
+  (defun less-eql (a b)
+    (declare (type <t> a b))
+    (not (< b a)))
+
+  (defun greater (a b)
+    (declare (type <t> a b))
+    (< b a))
+
+  (defun greater-eql (a b)
+    (declare (type <t> a b))
+    (not (< a b))))
+
 

@@ -27,4 +27,5 @@ This file does XXX.
 
 (defmacro log.debug (&rest args)
   (when args
-    `(format t ,@args)))
+    `(when *compile-verbose*
+       (format t ,@args))))

@@ -162,10 +162,11 @@ e.g. (a b &optional (c 1)) -> (a b c)
    (ecase kind
      (template-type
       (mangle-cons-type (cons name actual-types)))
-     (template-function
-      ;; we want functions with a single template argument to be simple.
-      ;; In particular, the following mangles (MAKE ((PAIR A B) ...))
-      ;; to (MAKE-<PAIR.A.B> ...) which is exactly what DEFSTRUCT produces :)
+     ((template-function template-constructor)
+      ;; we want functions with a single template argument have simple names,
+      ;; and we want to mangle template-struct constructors as
+      ;; (MAKE ((PAIR A B)) ...)) to (MAKE-<PAIR.A.B> ...)
+      ;; because it is exactly what DEFSTRUCT produces :)
       (let ((tokens (loop :for actual-type :in actual-types
                        :collect "-"
                        :collect (mangle-any-type actual-type))))
@@ -183,11 +184,21 @@ e.g. (a b &optional (c 1)) -> (a b c)
       (mangle kind name actual-types :simplify simplify)
     (let* ((symbol
             (case kind
-              ;; for template-accessors, use the package where the struct is defined
-              ;; because accessors could be named FIRST or similar, which is in package CL
-              (template-accessor (recurse-first-atom actual-types))
+              ;; for TEMPLATE-ACCESSOR and TEMPLATE-CONSTRUCTOR,
+              ;; we must use the package where the struct is defined
+              ;; because that's the package where all concrete accessors
+              ;; and constructors must be instantiated.
+              ;;
+              ;; Instead the function itself could be named FIRST or similar,
+              ;; which is in package CL
+              ((template-accessor template-constructor)
+               (recurse-first-atom actual-types))
               (otherwise name)))
            (package (symbol-package symbol)))
+      (unless package
+        (error "CL-PARAMETRIC-TYPES: symbol ~S is uninterned, i.e. has no home package.
+ I have no idea in which package I should instantiate ~S into!"
+               symbol (cons name actual-types)))
       (values
        (intern mangled-name package)
        actual-types*))))

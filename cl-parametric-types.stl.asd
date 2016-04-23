@@ -12,17 +12,16 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
-(in-package :cl-user)
 
-(defpackage #:cl-parametric-types
-  (:nicknames #:cl-ptypes #:cpt #:c+t)
+(asdf:defsystem #:cl-parametric-types.stl
+  :version "0.0.1"
+  :author "Massimiliano Ghilardi"
+  :license "LLGPL"
+  :description "C++-style templates for Common Lisp. STL implementations"
+  :depends-on (:cl-parametric-types)
+  :pathname "stl/"
+  :components
+  ((:file "package")
+   (:file "compare"   :depends-on ("package"))
+   (:file "pair"      :depends-on ("package"))))
 
-  (:use #:cl)
-
-  (:export #:template-class #:template-struct #:template-type
-	   #:template-function #:template
-
-	   #:typexpand
-
-           #:mangle   #:concretize  #:get-definition
-           #:instantiate-definition #:instantiate  #:instantiate*))

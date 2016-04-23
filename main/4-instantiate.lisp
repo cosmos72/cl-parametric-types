@@ -47,35 +47,54 @@ This file does XXX.
 	 (definition-form  (third  definition)))
     (multiple-value-bind (concrete actual-types*) (concretize kind name actual-types)
       (unless definition
-	(error "~A ~S has no ~S definition,
+	(error "~A ~S has no definition,
 cannot instantiate ~S"
-	       (kind-name kind) name kind (cons name actual-types)))
-      `(progn
-	 (in-package ,(package-name (symbol-package name)))
-	 ,(multi-subst (cons concrete (if simplify actual-types* actual-types))
-		       (cons name formal-types)
-		       definition-form)))))
+	       (kind-name kind) name (cons name actual-types)))
+      (values
+       (multi-subst (cons concrete (if simplify actual-types* actual-types))
+                    (cons name formal-types)
+                    definition-form)
+       concrete))))
+      
 
 (defmethod instantiate (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
   (let ((definition (get-definition kind name))
 	(actual-types (if simplify (simplify-typexpand-list actual-types) actual-types)))
     (etypecase definition
-      (list  (eval (instantiate-definition kind name actual-types definition :simplify nil)))
-      ((or symbol function) (funcall definition name actual-types)))))
+      ((or symbol function) (funcall definition name actual-types))
+      (list
+       (multiple-value-bind (to-eval concrete)
+           (instantiate-definition kind name actual-types definition :simplify nil)
+         (let ((orig-package *package*))
+           (unwind-protect
+                (progn
+                  ;; first set package, then eval definition. reason:
+                  ;; on some implementations, when in package A, (defstruct B::FOO ...) 
+                  ;; may define some functions in A and some in B!
+                  (eval `(in-package ,(package-name (symbol-package concrete))))
+                  (eval to-eval))
+             (eval `(in-package ,(package-name orig-package))))))))))
+
 
 (defmethod instantiate* (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
   (multiple-value-bind (concrete actual-types*) (concretize kind name actual-types)
-    (handler-case
-        (ecase kind
-          (template-type                         (find-class concrete))
-          ((template-function template-accessor) (fdefinition concrete)))
-      (condition ()
-	(log.debug "; instantiating ~A ~A as ~S~%"
-                   (kind-name kind) (format nil "~S" (cons name actual-types)) concrete)
-	(setf concrete (instantiate kind name (if simplify actual-types* actual-types)
-				    :simplify nil))))
+    (case kind
+      ((template-accessor template-constructor)
+       ;; struct accessors and constructors cannot be instantiated manually...
+       ;; they should be already instantiated by typexpanding the struct name.
+       (fdefinition concrete)) ;; signals error if not found
+      (otherwise
+       (handler-case
+           (ecase kind
+             (template-type     (find-class concrete))
+             (template-function (fdefinition concrete)))
+         (condition ()
+           (log.debug "~&; instantiating ~A ~S as ~S~&"
+                      (kind-name kind) (cons name actual-types) concrete)
+           (setf concrete (instantiate kind name (if simplify actual-types* actual-types)
+                                       :simplify nil))))))
     concrete))
 
 

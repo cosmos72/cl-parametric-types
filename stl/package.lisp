@@ -12,26 +12,13 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
-(in-package :cl-parametric-types.test)
+(in-package :cl-user)
 
-(def-suite less :in suite)
-(in-suite less)
+(defpackage #:cl-parametric-types.stl
+  (:nicknames #:cpt.stl #:c+t.stl)
 
-(template (<t>)
-  (defun less (a b)
-    (declare (type <t> a b))
-    (< a b)))
+  (:use #:cl #:cl-parametric-types)
 
-(def-test less (:compile-at :definition-time)
-  (is-true
-   (progn
-     (less (float) 0.0 1.0)))
-  (is-true
-   (progn
-     (less (fixnum) 0 1)))
-  (is-false
-   (progn
-     (less (float) 1.0 0.0)))
-  (is-false
-   (progn
-     (less (fixnum) 1 0))))
+  (:export #:less #:less-eql #:greater #:greater-eql
+           
+           #:pair #:make-pair #:copy-pair #:pair-p #:pair-first #:pair-second))

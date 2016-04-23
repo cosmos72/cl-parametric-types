@@ -15,8 +15,12 @@
 (in-package :cl-user)
 
 (defpackage #:cl-parametric-types.test
-  (:use :cl :cl-parametric-types :fiveam))
+  (:nicknames #:cpt.test #:c+t.test)
+
+  (:use #:cl #:fiveam #:cl-parametric-types #:cl-parametric-types.stl)
+
+  (:export #:suite))
 
 (in-package :cl-parametric-types.test)
 
-(def-suite suite)
+(fiveam:def-suite suite)

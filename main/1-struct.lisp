@@ -40,18 +40,19 @@ This file does XXX.
 (defun define-struct-accessors (name template-args template-types slot-descriptions)
   (declare (type symbol name)
 	   (type list template-args template-types slot-descriptions))
-  (loop :for slot-description :in slot-descriptions
+  ;; structure type predicate (foo-p ...) behaves exactly like a slot named P
+  (loop :for slot-description :in (cons 'p slot-descriptions)
      :collect
      (define-struct-accessor name template-args template-types slot-description)))
      
 
 (defmacro make ((&rest template-args) &rest function-args)
-  (let ((concrete-function (instantiate* 'template-function 'make `(,@template-args))))
+  (let ((concrete-function (instantiate* 'template-constructor 'make `(,@template-args))))
     `(,concrete-function ,@function-args)))
 
 
 (defmacro copy ((&rest template-args) &rest function-args)
-  (let ((concrete-function (instantiate* 'template-function 'copy `(,@template-args))))
+  (let ((concrete-function (instantiate* 'template-constructor 'copy `(,@template-args))))
     `(,concrete-function ,@function-args)))
 
 

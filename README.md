@@ -138,7 +138,7 @@ For example,
              (second :type <t2>))))
 
 defines the parametric type `PAIR`, and also defines the symbols `MAKE-PAIR`, `COPY-PAIR`,
-`PAIR-FIRST` and `PAIR-SECOND` as macros that, before all the usual parameters,
+`PAIR-P`, `PAIR-FIRST` and `PAIR-SECOND` as macros that, before all the usual parameters,
 expect an additional one - the list actual template arguments you want to use:
 
         ;; i.e. instead of (MAKE-PAIR :FIRST 1 :SECOND 2) you must also specify

@@ -19,7 +19,7 @@
   :license "LLGPL"
   :description "C++-style templates for Common Lisp"
   :depends-on (:introspect-environment)
-  :pathname "src/"
+  :pathname "main/"
   :components
   ((:file "0-package")
    (:file "1-log"          :depends-on ("0-package"))
