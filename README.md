@@ -86,6 +86,11 @@ CL-PARAMETRIC-TYPES exports the following macros:
             T2 second;
         }
 
+  Note: `DEFSTRUCT` has many options - some say *too* many.
+        At the moment, `(TEMPLATE (DEFSTRUCT ...))` only supports
+	the option :INCLUDE to set the struct superclass.
+	Also, template superclasses are NOT supported yet...
+
   Finally, `TEMPLATE` can also be used with `DEFCLASS` to declare that a standard-object
   is parametric, i.e. that the "abstract" source code you provide  will be later instantiated
   on "concrete" types. For example,
@@ -104,7 +109,7 @@ CL-PARAMETRIC-TYPES exports the following macros:
             T1 first;
             T2 second;
         }
-
+	
   It is also possible to combine multiple functions, structures and classes definitions
   in a single `TEMPLATE`, as long as all functions, structures and classes share
   the same template arguments:
