@@ -14,8 +14,9 @@ Supported systems
 -----------------
 CL-PARAMETRIC-TYPES is currently tested on SBCL, CCL, CLISP and CMUCL.
 
-It is quite portable, as it only needs `TYPEXPAND`, for example from
-[introspect-environment](https://github.com/Bike/introspect-environment)
+It is quite portable, as it only needs the function `CLASS-SLOTS`,
+for example from [CLOSER-MOP](https://github.com/pcostanza/closer-mop)
+and the macro `TYPEXPAND`, for example from [INTROSPECT-ENVIRONMENT](https://github.com/Bike/introspect-environment)
 so porting it to other Common Lisp implementations should be quite straightforward.
 
 

@@ -21,7 +21,31 @@ This file does XXX.
 
 (in-package #:cl-parametric-types)
 
-(defun define-struct-accessor (struct-name template-args template-types slot-description)
+
+(declaim (inline struct-name-and-options->name))
+(defun struct-name-and-options->name (name-and-options)
+  (first-atom name-and-options))
+
+
+(defun struct-name-and-options->option (name-and-options keyword)
+  (declare (type (or symbol cons) name-and-options)
+	   (type keyword keyword))
+  (when (consp name-and-options)
+    (block nil
+      (dolist (option (rest name-and-options))
+	(when (eq keyword (first-atom option))
+	  (return option))))))
+
+
+(defun struct-name-and-options->superclass-name (name-and-options)
+  (declare (type (or symbol cons) name-and-options))
+  (let ((option (struct-name-and-options->option name-and-options :include)))
+    (when (consp option)
+      (second option))))
+    
+
+(defun define-struct-accessor (struct-name template-args template-types
+			       slot-description)
   (declare (type symbol struct-name))
   (let* ((package (symbol-package struct-name))
          (struct-name-s (symbol-name struct-name))
@@ -37,7 +61,8 @@ This file does XXX.
          `(,,concrete-function ,,instance)))))
 
 
-(defun define-struct-accessors (name template-args template-types slot-descriptions)
+(defun define-struct-direct-accessors (name template-args template-types
+				       slot-descriptions)
   (declare (type symbol name)
 	   (type list template-args template-types slot-descriptions))
   ;; structure type predicate (foo-p ...) behaves exactly like a slot named P
@@ -45,6 +70,28 @@ This file does XXX.
      :collect
      (define-struct-accessor name template-args template-types slot-description)))
      
+
+(defun slot-definition->name (slot-definition)
+  (typecase slot-definition
+    (symbol    slot-definition)
+    (cons      (first slot-definition))
+    (otherwise (closer-mop:slot-definition-name slot-definition))))
+
+
+;; this works only for non-template superclasses!
+(defun define-struct-accessors (name-and-options template-args template-types
+				slot-descriptions)
+  (declare (type (or symbol cons) name-and-options)
+	   (type list template-args template-types slot-descriptions))
+  (let ((name (struct-name-and-options->name name-and-options))
+	(superclass-name (struct-name-and-options->superclass-name name-and-options)))
+    (when superclass-name
+      (let ((superclass-slots (closer-mop:class-slots (find-class superclass-name))))
+	(dolist (superclass-slot (reverse superclass-slots))
+	  (push (slot-definition->name superclass-slot) slot-descriptions))))
+    (define-struct-direct-accessors name template-args template-types
+				    slot-descriptions)))
+
 
 (defmacro make ((&rest template-args) &rest function-args)
   (let ((concrete-function (instantiate* 'template-constructor 'make `(,@template-args))))
