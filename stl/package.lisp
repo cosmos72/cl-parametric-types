@@ -15,10 +15,10 @@
 (in-package :cl-user)
 
 (defpackage #:cl-parametric-types.stl
-  (:nicknames #:cpt.stl #:c+t.stl)
+  (:nicknames #:cpt.stl #:c+t.stl #:c+stl)
 
   (:use #:cl #:cl-parametric-types)
 
-  (:export #:less #:less-eql #:greater #:greater-eql
+  (:export #:less #:less-equal #:greater #:greater-equal
            
            #:pair #:make-pair #:copy-pair #:pair-p #:pair-first #:pair-second))

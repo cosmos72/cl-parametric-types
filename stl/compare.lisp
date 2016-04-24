@@ -15,20 +15,22 @@
 (in-package #:cl-parametric-types.stl)
 
 (template (&optional (<t> 'real))
+  (declaim (inline less))
   (defun less (a b)
     (declare (type <t> a b))
     (< a b))
 
-  (defun less-eql (a b)
+  (declaim (inline less-equal))
+  (defun less-equal (a b)
     (declare (type <t> a b))
-    (not (< b a)))
+    (not (less (<t>) b a)))
 
+  (declaim (inline greater))
   (defun greater (a b)
     (declare (type <t> a b))
-    (< b a))
+    (less (<t>) b a))
 
-  (defun greater-eql (a b)
+  (declaim (inline greater-equal))
+  (defun greater-equal (a b)
     (declare (type <t> a b))
-    (not (< a b))))
-
-
+    (not (less (<t>) a b))))

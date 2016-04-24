@@ -69,8 +69,8 @@ Default implementation is
 Default implementation is
 \(SETF (GET NAME KIND) DEFINITION)"))
 
-(defgeneric instantiate-definition (kind name actual-types definition
-				    &key simplify)
+(defgeneric instantiate-definition (kind name actual-types
+				    &key definition simplify)
   (:documentation
    "Given the definition of a parametric function, class or struct,
 actually instantiate it using the specified actual types"))

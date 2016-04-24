@@ -21,15 +21,78 @@ This file does XXX.
 
 (in-package #:cl-parametric-types)
 
+(defun parse-function-declaims (name declaims)
+  (declare (type list declaims))
+  (dolist (form declaims)
+    (destructuring-bind (declaim-name &rest specifiers) form
+      (unless (eq 'declaim declaim-name)
+	(error "CL-PARAMETRIC-TYPES: unsupported declaim
+  for template-function ~S: expecting (DECLAIM ...)
+  found ~S" name form))
 
-(defmacro template-declaim
-    ((&rest template-args)
-	(declaim &rest declaration-specifiers)))
+      (dolist (specifier specifiers)
+	(destructuring-bind (inline-or-ftype &rest args) specifier
+	  (case inline-or-ftype
+	    ((inline)
+	     (unless (equal `(,name) args)
+	       (error "CL-PARAMETRIC-TYPES: unsupported (DECLAIM (INLINE ...))
+  before template-function ~S:
+  expecting (DECLAIM (INLINE ~S))
+  found (DECLAIM ~S)" name name specifier)))
+
+	    ((notinline)
+	     (unless (equal `(,name) args)
+	       (error "CL-PARAMETRIC-TYPES: unsupported (DECLAIM (NOTINLINE ...))
+  before template-function ~S:
+  expecting (DECLAIM (NOTINLINE ~S))
+  found (DECLAIM ~S)" name name specifier)))
+
+	    ((ftype)
+	     (unless (equal `(,name) (rest args))
+	       (error "CL-PARAMETRIC-TYPES: unsupported (DECLAIM (FTYPE ...))
+  before template-function ~S:
+  expecting (DECLAIM (FTYPE (...) ~S))
+  found (DECLAIM ~S)" name name specifier))))))))
+  declaims)
+
+
+(defun parse-struct-declaims (name declaims)
+  (declare (type list declaims))
+  (when declaims
+    (error "CL-PARAMETRIC-TYPES: error defining template-struct ~S:
+  declaims are not (yet) supported for template-structs,
+  found ~S" name declaims)))
+
+
+(defun parse-struct-name-and-options (name-and-options)
+  (declare (type (or symbol cons) name-and-options))
+  (etypecase name-and-options
+    (symbol name-and-options)
+    (cons
+     (let ((name (first name-and-options))
+	   (opts (rest name-and-options)))
+       (dolist (opt opts)
+	 (let ((key (first-atom opt)))
+	   (case key
+	     (:include t)
+	     (otherwise
+	      (error "CL-PARAMETRIC-TYPES: error defining template-struct ~S:
+ DEFSTRUCT option ~S is not yet supported" name key))))))
+     name-and-options)))
+
+
+(defun parse-class-declaims (name declaims)
+  (declare (type list declaims))
+  (when declaims
+    (error "CL-PARAMETRIC-TYPES: error defining template-class ~S:
+  declaims are not (yet) supported for template-classs,
+  found ~S" name declaims)))
 
 
 (defmacro template-function
     ((&rest template-args)
-	(defun name lambda-list &body body))
+	(&key declaims)
+	   (defun name lambda-list &body body))
   
   (let* ((template-types (lambda-list->args template-args))
 	 (function-args (lambda-list->args lambda-list)))
@@ -37,6 +100,7 @@ This file does XXX.
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-function ',name)
 	       '(template-function ,template-types
+		 ,@(parse-function-declaims name declaims)
 		 (,defun ,name ,lambda-list
 		   ,@body))))
        ;; rely on DEFMACRO to parse the TEMPLATE-ARGS lambda list
@@ -47,14 +111,17 @@ This file does XXX.
 
 (defmacro template-struct
     ((&rest template-args)
+	(&key declaims)
 	(defstruct name-and-options &rest slot-descriptions))
 
   (let ((name (first-atom name-and-options))
-	(template-types (lambda-list->args template-args)))
+	(template-types (lambda-list->args template-args))
+	(name-and-options (parse-struct-name-and-options name-and-options)))
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-type ',name)
 	       '(template-struct ,template-types
+		 ,@(parse-struct-declaims name declaims)
 		 (,defstruct ,name-and-options
 		   ,@slot-descriptions))))
        ,@(define-struct-make&copy name template-args template-types)
@@ -66,6 +133,7 @@ This file does XXX.
 
 (defmacro template-class
     ((&rest template-args)
+	(&key declaims)
 	(defclass name direct-superclasses slot-descriptions
 	  &rest options))
 
@@ -74,6 +142,7 @@ This file does XXX.
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-type ',name)
 	       '(template-class ,template-types
+		 ,@(parse-class-declaims name declaims)
 		 (,defclass ,name ,direct-superclasses
 		   ,slot-descriptions
 		   ,@options))))
@@ -83,34 +152,43 @@ This file does XXX.
 
 
 (defmacro template-type
-    ((&rest template-args)
+    ((&rest template-args) (&key declaims)
 	(defclass-defstruct name &body body))
   (ecase defclass-defstruct
     ((defclass)
-     `(template-class ,template-args
+     `(template-class ,template-args (:declaims ,declaims)
 	(defclass ,name ,@body)))
     ((defstruct)
-     `(template-struct ,template-args
+     `(template-struct ,template-args (:declaims ,declaims)
 	(defstruct ,name ,@body)))))
+
 
 (defmacro template*
     ((&rest template-args) (&rest options)
      &body template-definitions)
   (declare (ignore options))
-  (let ((forms
-         (loop :for definition :in template-definitions
-            :collect
-            (destructuring-bind (defclass-defstruct-or-defun name &body body) definition
-              (ecase defclass-defstruct-or-defun
-                ((defclass)
-                 `(template-class ,template-args
-                                  (defclass ,name ,@body)))
-                ((defstruct)
-                 `(template-struct ,template-args
-                                   (defstruct ,name ,@body)))
-                ((defun)
-                 `(template-function ,template-args
-                                     (defun ,name ,@body))))))))
+  (let ((forms nil)
+	(declaims nil))
+    (dolist (definition template-definitions)
+      (destructuring-bind (macro name &body body) definition
+	(case macro
+	  ((declaim) (push definition declaims))
+	  (otherwise
+	   (setf declaims (nreverse declaims))
+	   (push
+	    (ecase macro
+	      ((defclass)
+	       `(template-class ,template-args (:declaims ,declaims)
+				(defclass ,name ,@body)))
+	      ((defstruct)
+	       `(template-struct ,template-args (:declaims ,declaims)
+				 (defstruct ,name ,@body)))
+	      ((defun)
+	       `(template-function ,template-args (:declaims ,declaims)
+				   (defun ,name ,@body))))
+	    forms)
+	   (setf declaims nil)))))
+    (setf forms (nreverse forms))
     (if (rest forms)
         `(progn ,@forms)
         (first forms))))

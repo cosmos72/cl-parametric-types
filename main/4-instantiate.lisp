@@ -41,31 +41,40 @@ This file does XXX.
 		 definition))
   (setf (get name kind) definition))
 
-(defmethod instantiate-definition (kind name actual-types definition &key (simplify t))
+
+(defmethod instantiate-definition (kind name actual-types
+				   &key definition (simplify t))
   (declare (type list actual-types definition))
-  (let* ((formal-types     (second definition))
-	 (definition-form  (third  definition)))
-    (multiple-value-bind (concrete actual-types*) (concretize kind name actual-types)
+  (multiple-value-bind (concrete actual-types*) (concretize kind name actual-types)
+    (unless definition
+      (setf definition (get-definition kind name))
       (unless definition
 	(error "~A ~S has no definition,
 cannot instantiate ~S"
-	       (kind-name kind) name (cons name actual-types)))
+	       (kind-name kind) name (cons name actual-types))))
+    (destructuring-bind (_ formal-types &rest forms) definition
+      (declare (ignore _))
       (values
        (multi-subst (cons concrete (if simplify actual-types* actual-types))
                     (cons name formal-types)
-                    definition-form)
+                    (if (rest forms)
+			`(progn ,@forms)
+			(first forms)))
        concrete))))
       
 
 (defmethod instantiate (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
   (let ((definition (get-definition kind name))
-	(actual-types (if simplify (simplify-typexpand-list actual-types) actual-types)))
+	(actual-types (if simplify
+			  (simplify-typexpand-list actual-types)
+			  actual-types)))
     (etypecase definition
       ((or symbol function) (funcall definition name actual-types))
       (list
        (multiple-value-bind (to-eval concrete)
-           (instantiate-definition kind name actual-types definition :simplify nil)
+           (instantiate-definition kind name actual-types
+				   :definition definition :simplify nil)
          (let ((orig-package *package*))
            (unwind-protect
                 (progn
