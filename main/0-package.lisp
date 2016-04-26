@@ -20,7 +20,7 @@
   (:use #:common-lisp #:cl-parametric-types.lang)
 
   (:shadowing-import-from #:cl-parametric-types.lang
-     #:defstruct)
+     #:defstruct #:eval)
    
   (:import-from #:cl-parametric-types.lang
      #:struct-name-and-options->name 
@@ -30,7 +30,7 @@
 
   (:export #:defstruct #:template #:template*
 
-           #:make #:copy #:typexpand
+           #:make #:copy #:typexpand #:eval! #:quote!
 
            #:instantiate-type     #:instantiate-function
            #:instantiate-accessor #:instantiate-constructor

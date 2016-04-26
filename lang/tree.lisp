@@ -46,27 +46,44 @@ TREE-FIND and MULTI-SUBST
         (%tree-find tree)))))
 
 
-(defun multi-subst (values args tree &optional quote-symbol)
-  (declare (type list values args)
-           (type atom quote-symbol))
-  (let ((item tree))
-    (cond
-      ((atom item)
-       (let ((pos (position item args)))
-         (if pos
-             (let ((replace-values (when pos (nthcdr pos values))))
-               (if replace-values
-                   (first replace-values)
-                   t))
-             item)))
-      ;; item is a CONS
-      ((and quote-symbol (eql quote-symbol (car item)))
-       ;; unquote
-       (check-type (cddr item) null)
-       (second item))
-      (t
-       (cons (multi-subst values args (car item) quote-symbol)
-             (multi-subst values args (cdr item) quote-symbol))))))
+(defun multi-subst (new-list old-list tree &optional quote-symbol eval-symbol env)
+  (declare (type list new-list old-list)
+           (type atom quote-symbol eval-symbol))
+  (labels ((%multi-subst (items)
+             (let* ((pos (position items old-list)))
+               (when pos
+                 (let ((new-items (nthcdr pos new-list)))
+                   (return-from %multi-subst (if new-items (first new-items) t))))
+               (cond
+                 ((atom items) items)
+                 ;; items is a CONS
+                 ((and quote-symbol (eql quote-symbol (car items)))
+                  ;; unquote
+                  (check-type (cddr items) null)
+                  (second items))
+                 ((and eval-symbol (eql eval-symbol (car items)))
+                  ;; eval
+                  (check-type (cddr items) null)
+                  (let ((items (%multi-subst (second items))))
+                    (eval items env)))
+                 (t
+                  (let* ((head (cons nil nil))
+                         (tail head))
+                    (loop :for subitems :on items :do
+                       (let ((new  (%multi-subst (first subitems)))
+                             (rest (rest subitems)))
+                         (setf (car tail) new)
+                         (cond
+                           ((consp rest)
+                            (let ((cons (cons nil nil)))
+                              (setf (cdr tail) cons
+                                    tail       cons)))
+                           (rest ;; NIL marks end-of-proper-list, ignore it
+                            (setf (cdr tail) (%multi-subst rest))))))
+                    head))))))
+    (%multi-subst tree)))
+                  
+
 
 
 #|

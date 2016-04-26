@@ -28,7 +28,6 @@
      (:file "list"         :depends-on ("package"))
      (:file "tree"         :depends-on ("package"))
      (:file "eval"         :depends-on ("package"))
-     (:file "bang"         :depends-on ("eval"))
      (:file "typexpand"    :depends-on ("package"))
      (:file "defstruct"    :depends-on ("typexpand"))))
 

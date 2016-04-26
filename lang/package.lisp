@@ -19,8 +19,8 @@
 
   (:use #:common-lisp)
 
-  (:shadow #:defstruct)
+  (:shadow #:defstruct #:eval)
 
-  (:export #:! #:defstruct #:eval-in-environment #:multi-subst #:tree-find #:typexpand
+  (:export #:defstruct #:eval #:eval! #:multi-subst #:tree-find #:typexpand
 
            #:first-atom #:recurse-first-atom #:lambda-list->args))
