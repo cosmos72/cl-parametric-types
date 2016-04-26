@@ -102,7 +102,12 @@ CL-PARAMETRIC-TYPES exports the following macros:
   Note: `DEFSTRUCT` has many options - some say *too* many.
         At the moment, `(TEMPLATE (DEFSTRUCT ...))` only supports
 	the option :INCLUDE to set the struct superclass.
-	Also, template superclasses are NOT supported yet...
+	Template superclasses *are* supported, as for example:
+        
+        (template (&optional (<t1> t) (<t2> t) (<t3> t))
+          (defstruct (triple (:include (pair <t1> <t2>)))
+            (third  nil :type <t3>)))
+        
 
   Finally, `TEMPLATE` can also be used with `DEFCLASS` to declare that a standard-object
   is parametric, i.e. that the "abstract" source code you provide  will be later instantiated
