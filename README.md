@@ -97,7 +97,7 @@ CL-PARAMETRIC-TYPES exports the following macros:
         {
             T1 first;
             T2 second;
-        }
+        };
 
   Note: `DEFSTRUCT` has many options - some say *too* many.
         At the moment, `(TEMPLATE (DEFSTRUCT ...))` only supports
@@ -108,6 +108,13 @@ CL-PARAMETRIC-TYPES exports the following macros:
           (defstruct (triple (:include (pair <t1> <t2>)))
             (third  nil :type <t3>)))
         
+  is conceptually equivalent to the following C++ code
+
+        template<class T1, class T2, class T3>
+        struct triple : public pair<T1, T2>
+        {
+            T3 third;
+        };
 
   Finally, `TEMPLATE` can also be used with `DEFCLASS` to declare that a standard-object
   is parametric, i.e. that the "abstract" source code you provide  will be later instantiated
@@ -126,7 +133,7 @@ CL-PARAMETRIC-TYPES exports the following macros:
         private:
             T1 first;
             T2 second;
-        }
+        };
 	
   It is also possible to combine multiple functions, structures and classes definitions
   in a single `TEMPLATE`, as long as all functions, structures and classes share
