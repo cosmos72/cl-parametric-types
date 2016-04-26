@@ -21,14 +21,7 @@ This file does XXX.
 
 (in-package #:cl-parametric-types)
 
-
-(defun multi-subst (values args tree)
-  (declare (type list values args tree))
-  (setf tree (nsubst (pop values) (pop args) (copy-tree tree)))
-  (loop :for arg :in args
-     :for value = (if values (pop values) t)
-     :do (nsubst value arg tree))
-  tree)
+(defconstant quote! 'quote!)
 
 (defun kind-name (kind)
   (string-downcase (symbol-name kind)))
@@ -41,7 +34,6 @@ This file does XXX.
 		 definition))
   (setf (get name kind) definition))
 
-
 (defmethod instantiate-definition (kind name actual-types
 				   &key definition (simplify t))
   (declare (type list actual-types definition))
@@ -52,18 +44,19 @@ This file does XXX.
 	(error "~A ~S has no definition,
 cannot instantiate ~S"
 	       (kind-name kind) name (cons name actual-types))))
-    (destructuring-bind (_ formal-types &rest forms) definition
+    (destructuring-bind (_ formal-lambda &rest forms) definition
       (declare (ignore _))
-      (values
-       (multi-subst (cons concrete (if simplify actual-types* actual-types))
-                    (cons name formal-types)
-                    (if (rest forms)
-			`(progn ,@forms)
-			(first forms)))
-       concrete))))
+      (let ((formal-types (lambda-list->args formal-lambda)))
+        (values
+         (multi-subst (cons concrete (if simplify actual-types* actual-types))
+                      (cons name formal-types)
+                      (if (rest forms)
+                          `(progn ,@forms)
+                          (first forms))
+                      'quote!)
+         concrete)))))
       
-
-(defmethod instantiate (kind name actual-types &key (simplify t))
+(defmethod instantiate* (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
   (let ((definition (get-definition kind name))
 	(actual-types (if simplify
@@ -86,44 +79,46 @@ cannot instantiate ~S"
              (eval `(in-package ,(package-name orig-package))))))))))
 
 
-(defmethod instantiate* (kind name actual-types &key (simplify t))
+(defmethod instantiate (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
   (multiple-value-bind (concrete actual-types*) (concretize kind name actual-types)
-    (case kind
-      ((template-accessor template-constructor)
-       ;; struct accessors and constructors cannot be instantiated manually...
-       ;; they should be already instantiated by typexpanding the struct name.
-       (fdefinition concrete)) ;; signals error if not found
-      (otherwise
-       (handler-case
-           (ecase kind
-             (template-type     (find-class concrete))
-             (template-function (fdefinition concrete)))
-         (condition ()
-           (log.debug "~&; instantiating ~A ~S as ~S~&"
-                      (kind-name kind) (cons name actual-types) concrete)
-           (setf concrete (instantiate kind name (if simplify actual-types* actual-types)
-                                       :simplify nil))))))
-    concrete))
-
+    (let ((just-instantiated nil))
+      (case kind
+        ((template-accessor template-constructor)
+         ;; struct accessors and constructors cannot be instantiated manually...
+         ;; they should be already instantiated by typexpanding the struct name
+         ;; in the call to CONCRETIZE above.
+         (fdefinition concrete)) ;; signals error if not found
+        (otherwise
+         (handler-case
+             (ecase kind
+               (template-type     (find-class concrete))
+               (template-function (fdefinition concrete)))
+           (condition ()
+             (log.debug "~&; instantiating ~A ~S as ~S~&"
+                        (kind-name kind) (cons name actual-types) concrete)
+             (setf concrete (instantiate* kind name (if simplify actual-types* actual-types)
+                                          :simplify nil)
+                   just-instantiated t)))))
+      (values concrete just-instantiated))))
+       
 
 (defun instantiate-type (name-and-actual-types)
   (declare (type cons name-and-actual-types))
-  (instantiate* 'template-type (first name-and-actual-types)
-                (rest name-and-actual-types)))
+  (instantiate 'template-type (first name-and-actual-types)
+               (rest name-and-actual-types)))
 
 (defun instantiate-function (name actual-types)
   (declare (type symbol name)
            (type list actual-types))
-  (instantiate* 'template-function name actual-types))
+  (instantiate 'template-function name actual-types))
 
 (defun instantiate-accessor (name struct-name-and-actual-types)
   (declare (type symbol name)
            (type cons struct-name-and-actual-types))
-  (instantiate* 'template-accessor name struct-name-and-actual-types))
+  (instantiate 'template-accessor name struct-name-and-actual-types))
 
 (defun instantiate-constructor (name struct-name-and-actual-types)
   (declare (type symbol name)
            (type cons struct-name-and-actual-types))
-  (instantiate* 'template-constructor name struct-name-and-actual-types))
-
+  (instantiate 'template-constructor name struct-name-and-actual-types))

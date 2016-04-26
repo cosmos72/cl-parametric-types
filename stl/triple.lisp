@@ -12,17 +12,9 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
+(in-package #:cl-parametric-types.stl)
 
-(asdf:defsystem :cl-parametric-types.test
-  :version "0.0.1"
-  :author "Massimiliano Ghilardi"
-  :license "LLGPL"
-  :description "Test system for cl-parametric-types"
-  :depends-on (:fiveam :cl-parametric-types :cl-parametric-types.stl)
-  :pathname "test/"
-  :components
-  ((:file "package")
-   (:file "compare"    :depends-on ("package"))
-   (:file "pair"       :depends-on ("package"))
-   (:file "triple"     :depends-on ("pair"))))
+(template (&optional (<t1> t) (<t2> t) (<t3> t))
+  (defstruct (triple (:include (pair <t1> <t2>)))
+    (third nil  :type <t3>)))
 

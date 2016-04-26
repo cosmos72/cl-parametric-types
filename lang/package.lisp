@@ -12,17 +12,15 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
+(in-package :cl-user)
 
-(asdf:defsystem :cl-parametric-types.test
-  :version "0.0.1"
-  :author "Massimiliano Ghilardi"
-  :license "LLGPL"
-  :description "Test system for cl-parametric-types"
-  :depends-on (:fiveam :cl-parametric-types :cl-parametric-types.stl)
-  :pathname "test/"
-  :components
-  ((:file "package")
-   (:file "compare"    :depends-on ("package"))
-   (:file "pair"       :depends-on ("package"))
-   (:file "triple"     :depends-on ("pair"))))
+(defpackage #:cl-parametric-types.lang
+  (:nicknames #:cpt.lang #:c+lang)
 
+  (:use #:common-lisp)
+
+  (:shadow #:defstruct)
+
+  (:export #:! #:defstruct #:eval-in-environment #:multi-subst #:tree-find #:typexpand
+
+           #:first-atom #:recurse-first-atom #:lambda-list->args))

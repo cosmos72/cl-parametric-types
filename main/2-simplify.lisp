@@ -150,18 +150,6 @@ Functions to simplify types, i.e. to replace:
                             (loop :for e :in (rest type)
                                :collect (simplify-type e))))))))
 
-(defun typexpand (type &optional env)
-  (declare (type (or symbol cons) type))
-  #+(or ccl cmucl sbcl)
-  (introspect-environment:typexpand type env)
-  #+clisp
-  (ext:type-expand type env))
-
-#-(or ccl clisp cmucl sbcl)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (error "no known implementation of TYPEXPAND on this platform,
-  cannot compile CL-PARAMETRIC-TYPES"))
-
 (defun simplify-typexpand-list (types)
   (declare (type list types))
    (loop :for type :in types

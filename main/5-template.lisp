@@ -31,13 +31,13 @@ This file does XXX.
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-function ',name)
-	       '(template-function ,template-types
+	       '(template-function ,template-args
 		 ,@(parse-function-declaims name declaims)
 		 (,defun ,name ,lambda-list
 		   ,@body))))
        ;; rely on DEFMACRO to parse the TEMPLATE-ARGS lambda list
        (defmacro ,name (,template-args ,@lambda-list)
-	 (let ((concrete-function (instantiate* 'template-function ',name `(,,@template-types))))
+	 (let ((concrete-function (instantiate 'template-function ',name `(,,@template-types))))
 	   `(,concrete-function ,,@function-args))))))
 
 
@@ -46,22 +46,30 @@ This file does XXX.
 	(&key declaims)
 	(defstruct name-and-options &rest slot-descriptions))
 
-  (let* ((template-types (lambda-list->args template-args))
-	 (name-and-options (parse-struct-name-and-options name-and-options))
-	 (name (struct-name-and-options->name name-and-options)))
+  (let* ((template-types   (lambda-list->args template-args))
+	 (name-and-options (parse-struct-name-and-options  name-and-options))
+	 (name             (struct-name-and-options->name  name-and-options))
+	 (superclass-name  (struct-name-and-options->superclass-name name-and-options))
+         (superclass-depends-on-templates (type-is-template-of superclass-name template-types)))
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-type ',name)
-	       '(template-struct ,template-types
+	       '(template-struct ,template-args
 		 ,@(parse-struct-declaims name declaims)
 		 (,defstruct ,name-and-options
-		   ,@slot-descriptions))))
-       ,@(define-struct-make&copy name template-args template-types)
-       ,@(define-struct-accessors name-and-options
-				  template-args template-types slot-descriptions)
+		   ,@slot-descriptions)
+                 ,@(when superclass-depends-on-templates
+                         ;; superclass is a template that depends on TEMPLATE-TYPES.
+                         ;; so we will know superclass accessors only after instantiating
+                         ;; the struct itself...
+                         `((define-struct-inherited-accessors! (quote! ,name) ,superclass-name)
+                           ',name)))))
+       (define-struct-make&copy! ,name)
+       (define-struct-accessors! ,name ,(unless superclass-depends-on-templates superclass-name)
+                                 ,(mapcar 'first-atom slot-descriptions))
        ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
        (deftype ,name ,template-args
-	 (instantiate* 'template-type ',name `(,,@template-types))))))
+	 (instantiate 'template-type ',name `(,,@template-types))))))
 
 
 (defmacro template-class
@@ -74,14 +82,14 @@ This file does XXX.
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-type ',name)
-	       '(template-class ,template-types
+	       '(template-class ,template-args
 		 ,@(parse-class-declaims name declaims)
 		 (,defclass ,name ,direct-superclasses
 		   ,slot-descriptions
 		   ,@options))))
        ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
        (deftype ,name ,template-args
-	 (instantiate* 'template-type ',name `(,,@template-types))))))
+	 (instantiate 'template-type ',name `(,,@template-types))))))
 
 
 (defmacro template-type

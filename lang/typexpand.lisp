@@ -12,17 +12,24 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
+#|
 
-(asdf:defsystem :cl-parametric-types.test
-  :version "0.0.1"
-  :author "Massimiliano Ghilardi"
-  :license "LLGPL"
-  :description "Test system for cl-parametric-types"
-  :depends-on (:fiveam :cl-parametric-types :cl-parametric-types.stl)
-  :pathname "test/"
-  :components
-  ((:file "package")
-   (:file "compare"    :depends-on ("package"))
-   (:file "pair"       :depends-on ("package"))
-   (:file "triple"     :depends-on ("pair"))))
+TYPEXPAND
 
+|#
+
+(in-package :cl-parametric-types.lang)
+
+
+(defun typexpand (type &optional env)
+  (declare (type (or symbol cons) type))
+  #+(or ccl cmucl sbcl)
+  (introspect-environment:typexpand type env)
+  #+clisp
+  (ext:type-expand type env))
+
+
+#-(or ccl clisp cmucl sbcl)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (error "no known implementation of TYPEXPAND on this platform,
+  cannot compile CL-PARAMETRIC-TYPES"))

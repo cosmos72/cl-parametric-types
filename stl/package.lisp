@@ -19,6 +19,13 @@
 
   (:use #:cl #:cl-parametric-types)
 
+  (:shadowing-import-from #:cl-parametric-types
+                          #:defstruct)
+
   (:export #:less #:less-equal #:greater #:greater-equal
            
-           #:pair #:make-pair #:copy-pair #:pair-p #:pair-first #:pair-second))
+           #:pair #:make-pair #:copy-pair #:pair-p
+           #:pair-first #:pair-second
+
+           #:triple #:make-triple #:copy-triple #:triple-p
+           #:triple-first #:triple-second #:triple-third))

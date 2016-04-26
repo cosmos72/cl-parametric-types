@@ -20,36 +20,7 @@ This file does XXX.
 |#
 
 
-
-
 (in-package #:cl-parametric-types)
-
-(defun recurse-first-atom (thing)
-  "Returns the first element of a cons tree. e.g. (((a) b) c) -> a"
-  (loop :while (consp thing) :do
-     (setf thing (first thing)))
-  thing)
-
-(defun first-atom (thing)
-  "Returns the first element of a cons, or itself when THING is an atom.
-   e.g. (a b) -> a
-          a   -> a"
-  (if (consp thing)
-      (first thing)
-      thing))
-
-(defun lambda-list->args (lambda-list)
-  "remove the lamda-list keywords (&key etc.) and default values from a lambda list.
-e.g. (a b &optional (c 1)) -> (a b c)
-"
-  (declare (type list lambda-list))
-  (loop :for e :in lambda-list
-     :for arg = (first-atom e)
-     :unless (member arg lambda-list-keywords)
-     :collect arg))
-
-
-
 
 
 (defun mangled-simple-type-name? (name)
@@ -153,6 +124,7 @@ e.g. (a b &optional (c 1)) -> (a b c)
     (symbol (mangle-simple-type type))
     (rational (format nil "~A" type))))
 
+
 (defmethod mangle ((kind symbol) (name symbol) actual-types
 		   &key (simplify t))
   (declare (type list actual-types))
@@ -177,6 +149,7 @@ e.g. (a b &optional (c 1)) -> (a b c)
       (let ((concrete-struct (mangle-any-type (first actual-types))))
         (concatenate 'string concrete-struct "-" (symbol-name name)))))
    actual-types))
+
 
 (defmethod concretize (kind name actual-types &key (simplify t))
   (declare (type list actual-types))

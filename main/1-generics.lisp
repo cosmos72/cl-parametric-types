@@ -75,14 +75,23 @@ Default implementation is
    "Given the definition of a parametric function, class or struct,
 actually instantiate it using the specified actual types"))
 
-(defgeneric instantiate (kind name actual-types &key simplify)
+(defgeneric instantiate* (kind name actual-types &key simplify)
   (:documentation
    "Find the definition of a parametric function, class or struct,
 and actually instantiate it using the specified actual types"))
 
-(defgeneric instantiate* (kind name actual-types &key simplify)
+(defgeneric instantiate (kind name actual-types &key simplify)
   (:documentation
-   "If a parametric function, class or struct is not yet instantiated
-on the specified actual types, then instantiate it.
-Returns the concretized name of the instantiated function, class or struct."))
+   "If a parametric function, class or struct already instantiated
+on the specified actual types, then return (VALUES <CONCRETIZED-NAME> NIL).
+Otherwise instantiate it on the specified actual types,
+and return (VALUES <CONCRETIZED-NAME> T)"))
+
+(declaim (inline get-definition-template-args))
+(defun get-definition-template-args (kind name)
+  (second (get-definition kind name)))
+
+(declaim (inline get-definition-template-types))
+(defun get-definition-template-types (kind name)
+  (lambda-list->args (get-definition-template-args kind name)))
 

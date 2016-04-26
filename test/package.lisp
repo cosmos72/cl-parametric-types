@@ -19,6 +19,9 @@
 
   (:use #:cl #:fiveam #:cl-parametric-types #:cl-parametric-types.stl)
 
+  (:shadowing-import-from #:cl-parametric-types
+                          #:defstruct)
+
   (:export #:suite))
 
 (in-package :cl-parametric-types.test)

@@ -17,9 +17,18 @@
 (defpackage #:cl-parametric-types
   (:nicknames #:cl-ptypes #:cpt #:c+t)
 
-  (:use #:cl)
+  (:use #:common-lisp #:cl-parametric-types.lang)
 
-  (:export #:template
+  (:shadowing-import-from #:cl-parametric-types.lang
+     #:defstruct)
+   
+  (:import-from #:cl-parametric-types.lang
+     #:struct-name-and-options->name 
+     #:struct-name-and-options->option 
+     #:struct-name-and-options->include
+     #:struct-name-and-options->superclass-name)
+
+  (:export #:defstruct #:template #:template*
 
            #:make #:copy #:typexpand
 

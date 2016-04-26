@@ -35,6 +35,19 @@ then load a REPL and run:
      
 If all goes well, it will load CL-PARAMETRIC-TYPES and its dependencies.
 
+A somewhat annoying issue is that CL-PARAMETRIC-TYPES must redefine the standard macro
+DEFSTRUCT to work around a technical limitation imposed by the standard
+\(for the curious, :INCLUDE disallows derived types, so template superclasses would be forbidden).
+The effect is that `(use-package :cl-parametric-types)` signals a warning:
+you will need to either take the new symbol or resolve the conflict manually.
+
+In real code, one would write instead:
+
+    (defpackage #:my-package
+      (:use #:cl #:cl-parametric-types)
+      (:shadowing-import-from #:cl-parametric-types #:defstruct)
+      (:export #:my-exported-symbols...))
+
 
 Basic usage
 -----------
