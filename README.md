@@ -249,3 +249,8 @@ CL-PARAMETRIC-TYPES exists for all these reasons, and for an additional one:
 
 scratch the author's personal itch about combining two of his favorite tools - Common Lisp and C++ templates.
 
+Legal
+-----
+
+CL-PARAMETRIC-TYPES is released under the terms of the [Lisp Lesser General Public License]
+(http://opensource.franz.com/preamble.html), known as the LLGPL.
