@@ -18,7 +18,7 @@
   :author "Massimiliano Ghilardi"
   :license "LLGPL"
   :description "C++-style templates for Common Lisp"
-  :depends-on (:introspect-environment :closer-mop)
+  :depends-on (:closer-mop :introspect-environment)
   :components
   ((:static-file "cl-parametric-types.asd")
 
@@ -41,7 +41,8 @@
      (:file "2-simplify"     :depends-on ("1-generics"))
      (:file "2-normalize"    :depends-on ("2-simplify"))
      (:file "3-concretize"   :depends-on ("2-simplify"))
-     (:file "4-instantiate"  :depends-on ("1-log"    "3-concretize"))
-     (:file "5-template"     :depends-on ("1-struct" "1-options" "4-instantiate"))))))
+     (:file "4-specialize"   :depends-on ("2-normalize"))
+     (:file "5-instantiate"  :depends-on ("1-log"    "3-concretize"))
+     (:file "6-template"     :depends-on ("1-struct" "1-options" "5-instantiate"))))))
 
 
