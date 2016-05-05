@@ -28,6 +28,13 @@ TYPEXPAND
   #+clisp
   (ext:type-expand type env))
 
+(defun typexpand-1 (type &optional env)
+  (declare (type (or symbol cons) type))
+  #+(or ccl cmucl sbcl)
+  (introspect-environment:typexpand-1 type env)
+  #+clisp
+  (ext:type-expand-1 type))
+
 
 #-(or ccl clisp cmucl sbcl)
 (eval-when (:compile-toplevel :load-toplevel :execute)

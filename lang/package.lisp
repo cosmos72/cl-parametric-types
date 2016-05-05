@@ -21,6 +21,9 @@
 
   (:shadow #:defstruct #:eval)
 
-  (:export #:defstruct #:eval #:eval! #:multi-subst #:tree-find #:typexpand
+  (:export #:defstruct #:eval #:eval! #:multi-subst #:tree-find
+           #:typexpand #:typexpand-1
 
-           #:first-atom #:recurse-first-atom #:lambda-list->args))
+           #:first-atom #:recurse-first-atom #:lambda-list->args
+
+           #:sarray #:sarray-t #:svector #:svector-t #:sstring #:sbstring))

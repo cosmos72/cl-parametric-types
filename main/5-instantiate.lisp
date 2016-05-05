@@ -53,7 +53,8 @@ cannot instantiate ~S"
                       (if (rest forms)
                           `(progn ,@forms)
                           (first forms))
-                      'quote! 'eval!)
+                      :quote-symbol 'quote! :eval-symbol 'eval!
+                      :eval-splice-symbol 'eval-splice!)
          concrete)))))
       
 (defmethod instantiate* (kind name actual-types &key (simplify t))

@@ -46,7 +46,7 @@ TREE-FIND and MULTI-SUBST
         (%tree-find tree)))))
 
 
-(defun multi-subst (new-list old-list tree &optional quote-symbol eval-symbol env)
+(defun multi-subst (new-list old-list tree &key quote-symbol eval-symbol eval-splice-symbol env)
   (declare (type list new-list old-list)
            (type atom quote-symbol eval-symbol))
   (labels ((%multi-subst (items)
@@ -65,14 +65,26 @@ TREE-FIND and MULTI-SUBST
                   ;; eval
                   (check-type (cddr items) null)
                   (let ((items (%multi-subst (second items))))
-                    (eval items env)))
+                    ;; only return the first value of EVAL!
+                    (values (eval items env))))
+                 ((and eval-splice-symbol (eql eval-splice-symbol (car items)))
+                  ;; eval-splice
+                  (check-type (cddr items) null)
+                  (let ((items (%multi-subst (second items))))
+                    ;; return the result of EVAL (which must be a list) as multiple values
+                    (values-list (eval items env))))
                  (t
                   (let* ((head (cons nil nil))
                          (tail head))
                     (loop :for subitems :on items :do
-                       (let ((new  (%multi-subst (first subitems)))
+                       (let ((new-list (multiple-value-list (%multi-subst (first subitems))))
                              (rest (rest subitems)))
-                         (setf (car tail) new)
+                         (setf (car tail) (pop new-list))
+                         (dolist (new new-list)
+                           (let ((cons (cons nil nil)))
+                             (setf (cdr tail) cons
+                                   tail       cons
+                                   (car tail) new)))
                          (cond
                            ((consp rest)
                             (let ((cons (cons nil nil)))
@@ -81,7 +93,8 @@ TREE-FIND and MULTI-SUBST
                            (rest ;; NIL marks end-of-proper-list, ignore it
                             (setf (cdr tail) (%multi-subst rest))))))
                     head))))))
-    (%multi-subst tree)))
+    ;; only return the first computed value, in case TREE starts with EVAL-SPLICE-SYMBOL
+    (values (%multi-subst tree))))
                   
 
 
