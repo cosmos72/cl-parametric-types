@@ -17,26 +17,8 @@
 (def-suite pair :in suite)
 (in-suite pair)
 
-(template (&optional (<t1> t) (<t2> t))
-  (defun pair-less (a b)
-    (declare (type (pair <t1> <t2>) a b))
-    ;; struct accessors want the FULL list of template arguments, in this case (<t1> <t2>)
-    ;; even if in practice the accessor type alone could suffice...
-    ;;
-    ;; i.e. one must write (pair-first (<t1> <t2>) ...)
-    ;; because PAIR is defined as (pair <t1> <t2>),
-    ;; even though PAIR-FIRST actually only uses <t1>, not <t2>
-    (let ((a1 (pair-first (<t1> <t2>) a))
-          (b1 (pair-first (<t1> <t2>) b)))
-      (cond
-        ((< a1 b1) t)
-        ((= a1 b1)
-         (< (pair-second (<t1> <t2>) a)
-            (pair-second (<t1> <t2>) b)))))))
-
 (def-test pair (:compile-at :definition-time)
   (is-true
-   (pair-less
-    (fixnum fixnum)
+   (less ((pair fixnum fixnum))
     (make-pair (fixnum fixnum) :first 1 :second 2)
     (make-pair (fixnum fixnum) :first 1 :second 3))))

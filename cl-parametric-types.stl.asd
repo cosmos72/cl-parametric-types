@@ -23,7 +23,7 @@
   :components
   ((:file "package")
    (:file "compare"    :depends-on ("package"))
-   (:file "pair"       :depends-on ("package"))
+   (:file "pair"       :depends-on ("compare"))
    (:file "triple"     :depends-on ("pair"))))
 
 

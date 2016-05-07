@@ -54,44 +54,63 @@ Default implementation is
      (INTERN MANGLED-NAME (SYMBOL-PACKAGE NAME))
      ACTUAL-TYPES*))"))
 
-(defgeneric get-definition (kind name)
+(defgeneric get-all-definitions (kind name)
   (:documentation
-   "Return the definition of a parametric function, class or struct
+   "Return all the template definitions of a parametric function, class or struct
 if available, otherwise return nil.
 
 Default implementation is
 \(GET NAME KIND)"))
 
-(defgeneric (setf get-definition) (definition kind name)
+(defgeneric (setf get-all-definitions) (definition kind name)
   (:documentation
-   "Set the definition of a parametric function, class or struct.
+   "Set all the definitions of a parametric function, class or struct.
 
 Default implementation is
 \(SETF (GET NAME KIND) DEFINITION)"))
 
-(defgeneric instantiate-definition (kind name actual-types
-				    &key definition simplify)
+
+(defgeneric get-specialized-definition (kind name specialized-for)
+  (:documentation
+   "Return the most specific template definition of a parametric function, class or struct
+available for specialization SPECIALIZED-FOR, otherwise return nil.
+This function implements partial specialization,
+i.e. finds the most specific among template partial specializations"))
+
+(defgeneric (setf get-specialized-definition) (definition kind name specialized-for)
+  (:documentation
+   "Set the definition of a parametric function, class or struct
+for specialization SPECIALIZED-FOR."))
+
+
+(defgeneric get-definition (kind name specialized-for)
+  (:documentation
+   "Call GET-SPECIALIZED-DEFINITION"))
+
+(defgeneric (setf get-definition) (definition kind name specialized-for)
+  (:documentation
+   "If SPECIALIZED-FOR is NIL, clear template definitions of NAME by calling
+\(SETF (GET-ALL-DEFINITIONS KIND NAME) NIL)
+Then in any case always call (SETF GET-SPECIALIZED-DEFINITION)"))
+
+
+(defgeneric instantiate-definition (kind name actual-types)
   (:documentation
    "Given the definition of a parametric function, class or struct,
 actually instantiate it using the specified actual types"))
 
-(defgeneric instantiate* (kind name actual-types &key simplify)
+(defgeneric instantiate* (kind name actual-types)
   (:documentation
    "Find the definition of a parametric function, class or struct,
 and actually instantiate it using the specified actual types"))
 
-(defgeneric instantiate (kind name actual-types &key simplify)
+(defgeneric instantiate (kind name actual-types)
   (:documentation
    "If a parametric function, class or struct already instantiated
 on the specified actual types, then return (VALUES <CONCRETIZED-NAME> NIL).
 Otherwise instantiate it on the specified actual types,
 and return (VALUES <CONCRETIZED-NAME> T)"))
 
-(declaim (inline get-definition-template-args))
-(defun get-definition-template-args (kind name)
-  (second (get-definition kind name)))
-
-(declaim (inline get-definition-template-types))
-(defun get-definition-template-types (kind name)
-  (lambda-list->args (get-definition-template-args kind name)))
+(defun get-definition-template-args (kind name specialized-for)
+  (caddr (assoc specialized-for (get-all-definitions kind name) :test 'equal)))
 

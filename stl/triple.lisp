@@ -18,3 +18,26 @@
   (defstruct (triple (:include (pair <t1> <t2>)))
     (third nil  :type <t3>)))
 
+
+(template (&optional (<t1> t) (<t2> t) (<t3> t))
+  (:specialized-for ((triple <t1> <t2> <t3>)))
+  (declaim (notinline less))
+  (defun less (a b)
+    (declare (type (triple <t1> <t2> <t3>) a b))
+    ;; see pair.lisp for the reason one must write
+    ;; (TRIPLE-FIRST (<T1> <T2> <T3>) A)
+    ;; instead of (TRIPLE-FIRST (<T1>) A)
+    (let ((a1 (triple-first (<t1> <t2> <t3>) a))
+          (b1 (triple-first (<t1> <t2> <t3>) b)))
+      (cond
+        ((< a1 b1) t)
+        ((= a1 b1)
+         (let ((a2 (triple-second (<t1> <t2> <t3>) a))
+	       (b2 (triple-second (<t1> <t2> <t3>) b)))
+	   (cond
+	     ((< a2 b2) t)
+	     ((= a2 b2)
+	      (< (triple-third (<t1> <t2> <t3>) a)
+		 (triple-third (<t1> <t2> <t3>) b))))))))))
+
+
