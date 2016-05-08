@@ -50,62 +50,48 @@ TREE-FIND and MULTI-SUBST
   (declare (type list new-list old-list)
            (type atom quote-symbol eval-symbol))
   (labels ((%multi-subst (items)
-             (let* ((pos (position items old-list)))
+             (let ((pos (position items old-list :test 'equal)))
                (when pos
-                 (let ((new-items (nthcdr pos new-list)))
-                   (return-from %multi-subst (if new-items (first new-items) t))))
-               (cond
-                 ((atom items) items)
-                 ;; items is a CONS
-                 ((and quote-symbol (eql quote-symbol (car items)))
-                  ;; unquote
-                  (check-type (cddr items) null)
-                  (second items))
-                 ((and eval-symbol (eql eval-symbol (car items)))
-                  ;; eval
-                  (check-type (cddr items) null)
-                  (let ((items (%multi-subst (second items))))
-                    ;; only return the first value of EVAL!
-                    (values (eval items env))))
-                 ((and eval-splice-symbol (eql eval-splice-symbol (car items)))
-                  ;; eval-splice
-                  (check-type (cddr items) null)
-                  (let ((items (%multi-subst (second items))))
-                    ;; return the result of EVAL (which must be a list) as multiple values
-                    (values-list (eval items env))))
-                 (t
-                  (let* ((head (cons nil nil))
-                         (tail head))
-                    (loop :for subitems :on items :do
-                       (let ((new-list (multiple-value-list (%multi-subst (first subitems))))
-                             (rest (rest subitems)))
-                         (setf (car tail) (pop new-list))
-                         (dolist (new new-list)
-                           (let ((cons (cons nil nil)))
-                             (setf (cdr tail) cons
-                                   tail       cons
-                                   (car tail) new)))
-                         (cond
-                           ((consp rest)
-                            (let ((cons (cons nil nil)))
-                              (setf (cdr tail) cons
-                                    tail       cons)))
-                           (rest ;; NIL marks end-of-proper-list, ignore it
-                            (setf (cdr tail) (%multi-subst rest))))))
-                    head))))))
-    ;; only return the first computed value, in case TREE starts with EVAL-SPLICE-SYMBOL
+                 (return-from %multi-subst (nth pos new-list))))
+	     (cond
+	       ((atom items) items)
+	       ;; items is a CONS
+	       ((and quote-symbol (eql quote-symbol (car items)))
+		;; unquote
+		(check-type (cddr items) null)
+		(second items))
+	       ((and eval-symbol (eql eval-symbol (car items)))
+		;; eval
+		(check-type (cddr items) null)
+		(let ((items (%multi-subst (second items))))
+		  ;; only return the first value of EVAL
+		  (values (eval items env))))
+	       ((and eval-splice-symbol (eql eval-splice-symbol (car items)))
+		;; eval-splice
+		(check-type (cddr items) null)
+		(let ((items (%multi-subst (second items))))
+		  ;; return the result of EVAL (which must be a list) as multiple values
+		  (values-list (eval items env))))
+	       (t
+		(let* ((head (cons nil nil))
+		       (tail head))
+		  (loop :for subitems :on items :do
+		     (let ((new-list (multiple-value-list (%multi-subst (first subitems))))
+			   (rest (rest subitems)))
+		       (setf (car tail) (pop new-list))
+		       (dolist (new new-list)
+			 (let ((cons (cons nil nil)))
+			   (setf (cdr tail) cons
+				 tail       cons
+				 (car tail) new)))
+		       (cond
+			 ((consp rest)
+			  (let ((cons (cons nil nil)))
+			    (setf (cdr tail) cons
+				  tail       cons)))
+			 (rest ;; NIL marks end-of-proper-list, ignore it
+			  (setf (cdr tail) (%multi-subst rest))))))
+		  head)))))
+    ;; only return the first computed value,
+    ;; in case TREE starts with EVAL-SPLICE-SYMBOL
     (values (%multi-subst tree))))
-                  
-
-
-
-#|
-(defun multi-subst (values args tree)
-  (declare (type list values args tree)
-           (type symbol quote-symbol))
-  (setf tree (nsubst (pop values) (pop args) (copy-tree tree)))
-  (loop :for arg :in args
-     :for value = (if values (pop values) t)
-     :do (nsubst value arg tree))
-  tree)
-|#

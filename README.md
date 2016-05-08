@@ -17,7 +17,7 @@ CL-PARAMETRIC-TYPES is currently tested on SBCL, CCL, CLISP and CMUCL.
 It is quite portable, as it only needs the function `CLASS-SLOTS`,
 for example from [CLOSER-MOP](https://github.com/pcostanza/closer-mop)
 and the macro `TYPEXPAND`, for example from [INTROSPECT-ENVIRONMENT](https://github.com/Bike/introspect-environment)
-so porting it to other Common Lisp implementations should be quite straightforward.
+so porting it to other Common Lisp implementations should be relatively straightforward.
 
 
 Installation and loading
@@ -154,6 +154,40 @@ CL-PARAMETRIC-TYPES exports the following macros:
 Unlike C++ templates, where you must declare if the arguments of `template<...>` are types or values
 (and if they are values, you must declare their type), the arguments of `TEMPLATE` can be anything,
 not only types.
+
+- `ALIAS` is a macro performing textual replacement on forms.
+  It is used to define local, short names for long or complicated expressions,
+  and it is especially useful to shorten the names of complicated types.
+  (Common Lisp has no local version of DEFTYPE).
+
+  It has the same syntax as LET:
+
+        (alias ((alias1 expr1)
+                (alias2 expr2)
+                 ...)
+          form1
+          form2
+          ...)
+
+  and replaces *all* occurrences of the aliases in the contained forms,
+  wherever they appear. For example:
+
+          (alias ((foo (some-really-complex-type arg1 arg2 arg3))
+                  (bar (another-complex-type arg4 arg5 arg6)))
+            (defun baz (a b)
+              (declare (type foo a)
+                       (type bar b))
+              (frobnicate a b)))
+
+  macroexpands to:
+
+          (defun baz (a b)
+            (declare (type (some-really-complex-type arg1 arg2 arg3) a)
+                     (type (another-complex-type arg4 arg5 arg6) b))
+            (frobnicate a b)))
+
+  With some care, it can be used as poor man's implementation of local types.
+
 
 Invoking template functions
 ---------------------------
