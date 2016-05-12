@@ -21,13 +21,6 @@ DEFSTRUCT
 
 (in-package :cl-parametric-types.lang)
 
-(declaim (inline first-atom))
-(defun first-atom (thing)
-  (if (consp thing)
-      (first thing)
-      thing))
-
-
 (declaim (inline struct-name-and-options->name))
 (defun struct-name-and-options->name (name-and-options)
   (first-atom name-and-options))

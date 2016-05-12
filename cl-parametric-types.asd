@@ -47,3 +47,8 @@
      (:file "6-template"     :depends-on ("1-struct" "1-options" "5-instantiate"))))))
 
 
+;; cargo-culted from Bordeaux-threads
+(defmethod asdf:perform ((operation asdf:test-op)
+                         (component (eql (asdf:find-system :cl-parametric-types))))
+  (asdf:load-system :cl-parametric-types.test)
+  (uiop:symbol-call :5am :run! (uiop:find-symbol* :suite :cl-parametric-types.test)))

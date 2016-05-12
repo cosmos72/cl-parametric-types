@@ -27,6 +27,8 @@ TREE-FIND
      (setf thing (first thing)))
   thing)
 
+
+(declaim (inline first-atom))
 (defun first-atom (thing)
   "Returns the first element of a cons, or itself when THING is an atom.
    e.g. (a b) -> a

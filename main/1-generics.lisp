@@ -62,7 +62,7 @@ if available, otherwise return nil.
 Default implementation is
 \(GET NAME KIND)"))
 
-(defgeneric (setf get-definition) (definition kind name)
+(defgeneric (setf get-definition) (definition kind name &key specialized-for)
   (:documentation
    "Set the definition of a parametric function, class or struct.
 

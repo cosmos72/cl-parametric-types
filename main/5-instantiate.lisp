@@ -29,10 +29,12 @@ This file does XXX.
 (defmethod get-definition ((kind symbol) (name symbol))
   (get name kind))
 
-(defmethod (setf get-definition) (definition (kind symbol) (name symbol))
-  (declare (type (or list (function (symbol list) (values symbol &optional)))
-		 definition))
-  (setf (get name kind) definition))
+(defmethod (setf get-definition) (definition (kind symbol) (name symbol) &key specialized-for)
+  (declare (type (or list (function (symbol list) (values symbol &optional))) definition)
+           (type list specialized-for))
+  (if specialized-for
+      nil ;; TODO
+      (setf (get name kind) definition)))
 
 (defmethod instantiate-definition (kind name actual-types
 				   &key definition (simplify t))
