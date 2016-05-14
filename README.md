@@ -38,7 +38,7 @@ If all goes well, it will load CL-PARAMETRIC-TYPES and its dependencies.
 A somewhat annoying issue is that CL-PARAMETRIC-TYPES must redefine the standard macro
 DEFSTRUCT to work around a technical limitation imposed by the standard
 \(for the curious, :INCLUDE disallows derived types, so template superclasses would be forbidden).
-The effect is that `(use-package :cl-parametric-types)` signals a warning:
+The effect is that `(use-package :cl-parametric-types)` signals a symbol conflict warning:
 you will need to either take the new symbol or resolve the conflict manually.
 
 In real code, one would write instead:
@@ -53,109 +53,7 @@ Basic usage
 -----------
 CL-PARAMETRIC-TYPES exports the following macros:
 
-- `TEMPLATE` declares that one or more functions, structs or objects are parametric,
-  i.e. that the "abstract" source code you provide will be later instantiated
-  on "concrete" types. For example,
-
-        (template (<t>)
-          (defun less (a b)
-            (declare (type <t> a b))
-            (< a b)))
-
-  is conceptually equivalent to the following C++ code
-
-        template<class T>
-        bool less(T a, T b)
-        {
-            return a < b;
-        }
-
-  i.e. both instruct the compiler that a function `LESS` exists, and it in order to actually compile
-  and use it, it must be instantiated first, i.e. specialized, on a single type (&lt;t&gt; in CL, T in C++)
-
-  Note: `TEMPLATE` accepts arbitrary lambda-lists as its arguments, including optional arguments,
-  keyword arguments, and &rest as for example:
-
-        (template (&optional (<t1> 'real) (<t2> 'real))
-          (defun less (a b)
-            (declare (type <t1> a)
-                     (type <t2> b))
-            (< a b)))
-  
-  `TEMPLATE` can also be used with `DEFSTRUCT` to declare that a structure-object is parametric.
-  For example,
-
-        (template (&optional (<t1> t) (<t2> t))
-          (defstruct pair
-            (first  nil :type <t1>)
-            (second nil :type <t2>)))
-
-  is conceptually equivalent to the following C++ code
-
-        template<class T1, class T2>
-        struct pair
-        {
-            T1 first;
-            T2 second;
-        };
-
-  Note: `DEFSTRUCT` has many options - some say *too* many.
-        At the moment, `(TEMPLATE (DEFSTRUCT ...))` only supports
-	the option :INCLUDE to set the struct superclass.
-	Template superclasses *are* supported, as for example:
-        
-        (template (&optional (<t1> t) (<t2> t) (<t3> t))
-          (defstruct (triple (:include (pair <t1> <t2>)))
-            (third  nil :type <t3>)))
-        
-  is conceptually equivalent to the following C++ code
-
-        template<class T1, class T2, class T3>
-        struct triple : public pair<T1, T2>
-        {
-            T3 third;
-        };
-
-  Finally, `TEMPLATE` can also be used with `DEFCLASS` to declare that a standard-object
-  is parametric, i.e. that the "abstract" source code you provide  will be later instantiated
-  on "concrete" types. For example,
-
-        (template (&optional (<t1> t) (<t2> t))
-          (defclass pair2 ()
-            ((first  :type <t1>)
-             (second :type <t2>))))
-
-  is conceptually equivalent to the following C++ code
-
-        template<class T, class T2>
-        class pair2
-        {
-        private:
-            T1 first;
-            T2 second;
-        };
-	
-  It is also possible to combine multiple functions, structures and classes definitions
-  in a single `TEMPLATE`, as long as all functions, structures and classes share
-  the same template arguments:
-  
-        (template (&optional (<t1> 'real) (<t2> 'real))
-          (defun less (a b)
-            (declare (type <t1> a)
-                     (type <t2> b))
-            (< a b))
-          (defstruct pair
-            (first  nil :type <t1>)
-            (second nil :type <t2>))
-          (defclass pair2 ()
-            ((first  :type <t1>)
-             (second :type <t2>))))
-             
-Unlike C++ templates, where you must declare if the arguments of `template<...>` are types or values
-(and if they are values, you must declare their type), the arguments of `TEMPLATE` can be anything,
-not only types.
-
-- `ALIAS` is a macro performing textual replacement on forms.
+- `ALIAS` is an utility macro performing textual replacement on forms.
   It is used to define local, short names for long or complicated expressions,
   and it is especially useful to shorten the names of complicated types.
   (Common Lisp has no local version of DEFTYPE).
@@ -187,6 +85,109 @@ not only types.
             (frobnicate a b)))
 
   With some care, it can be used as poor man's implementation of local types.
+
+
+- `TEMPLATE` declares that one or more functions, structs or objects are parametric,
+  i.e. that the "abstract" source code you provide will be later instantiated
+  on "concrete" types. For example,
+
+        (template (<t>)
+          (defun less (a b)
+            (declare (type <t> a b))
+            (< a b)))
+
+  is conceptually equivalent to the following C++ code
+
+        template<class T>
+        bool less(T a, T b)
+        {
+            return a < b;
+        }
+
+  i.e. both instruct the compiler that a function `LESS` exists, and it in order to actually compile
+  and use it, it must be instantiated first, i.e. specialized, on a single type (&lt;t&gt; in CL, T in C++)
+
+  Note: `TEMPLATE` accepts arbitrary lambda-lists as its arguments, including optional arguments,
+  keyword arguments, and &rest as for example:
+
+        (template (&optional (<t1> 'real) (<t2> 'real))
+          (defun multiply (a b)
+            (declare (type <t1> a)
+                     (type <t2> b))
+            (* a b)))
+  
+  `TEMPLATE` can also be used with `DEFSTRUCT` to declare that a structure-object is parametric.
+  For example,
+
+        (template (&optional (<t1> t) (<t2> t))
+          (defstruct pair
+            (first  nil :type <t1>)
+            (second nil :type <t2>)))
+
+  is conceptually equivalent to the following C++ code
+
+        template<class T1, class T2>
+        struct pair
+        {
+            T1 first;
+            T2 second;
+        };
+
+  Note: `DEFSTRUCT` has many options - some say *too* many.
+        At the moment, `(TEMPLATE (DEFSTRUCT ...))` only supports
+        the option :INCLUDE to set the struct superclass.
+        Template superclasses *are* supported, as for example:
+        
+        (template (&optional (<t1> t) (<t2> t) (<t3> t))
+          (defstruct (triple (:include (pair <t1> <t2>)))
+            (third  nil :type <t3>)))
+        
+  is conceptually equivalent to the following C++ code
+
+        template<class T1, class T2, class T3>
+        struct triple : public pair<T1, T2>
+        {
+            T3 third;
+        };
+
+  Finally, `TEMPLATE` can also be used with `DEFCLASS` to declare that a standard-object
+  is parametric, i.e. that the "abstract" source code you provide  will be later instantiated
+  on "concrete" types. For example,
+
+        (template (&optional (<t1> t) (<t2> t))
+          (defclass pair2 ()
+            ((first  :type <t1>)
+             (second :type <t2>))))
+
+  is conceptually equivalent to the following C++ code
+
+        template<class T, class T2>
+        class pair2
+        {
+        private:
+            T1 first;
+            T2 second;
+        };
+        
+  It is also possible to combine multiple functions, structures and classes definitions
+  in a single `TEMPLATE`, as long as all functions, structures and classes share
+  the same template arguments:
+  
+        (template (&optional (<t1> 'real) (<t2> 'real))
+          (defun multiply (a b)
+            (declare (type <t1> a)
+                     (type <t2> b))
+            (* a b))
+          (defstruct pair
+            (first  nil :type <t1>)
+            (second nil :type <t2>))
+          (defclass pair2 ()
+            ((first  :type <t1>)
+             (second :type <t2>))))
+             
+  Unlike C++ templates, where you must declare if the arguments of `template<...>` are types or values
+  (and if they are values, you must declare their type), the arguments of `TEMPLATE` can be anything,
+  not only types.
 
 
 Invoking template functions
@@ -227,6 +228,51 @@ Also, `(SETF PAIR-FIRST)` and `(SETF PAIR-SECOND)` work as expected:
         *pair*
         #S(<PAIR.BIT.FIXNUM> :FIRST 0 :SECOND 2)
         
+
+Partial template specialization
+-------------------------------
+
+`TEMPLATE` also supports partial template specialization. For example, to specialize the function
+`LESS` defined above, adding a specialization that compares instances of `PAIR`, one can write:
+  
+        (template (<t1> <t2>)
+          (:specialized-for ((pair <t1> <t2>))
+          (defun less (a b)
+            (declare (type (pair <t1> <t2>) a b))
+            (let ((a1 (pair-first (<t1> <t2>)) a)
+                  (b1 (pair-first (<t1> <t2>)) b))
+              (cond
+                (((quote! less) (<t1>) a1 b1) t)
+                (((quote! less) (<t1>) b1 a1) nil)
+                (t
+                 ((quote! less) (<t2>) (pair-second (<t1> <t2>) a)
+                                       (pair-second (<t1> <t2>) b)))))))
+
+The ugly `(QUOTE! LESS)` stuff is a (hopefully temporary) workaround,
+it prevents `LESS` to be interpreted as the function currently being defined
+by the template, i.e. as `LESS ((PAIR <T1> <T2>))`
+
+The equivalent C++ code would be:
+
+        template<class T1, class T2>
+        bool less<pair<T1, T2> >(pair<T1,T2> a, pair<T1,T2> b) 
+        {
+            T1 a1 = a.first, b1 = b.second;
+	    if (less<T1>(a1, b1))
+	        return true;
+	    if (less<T1>(b1, a1))
+	        return false;
+	    return less<T2>(a.second, b.second);
+        };
+
+Note that, just like in C++, partially specialized functions and types
+are used when their specialization *pattern* matches the actual types,
+ignoring any superclass<->subclass relationship.
+
+In other words, the function `LESS` specialized for `(PAIR <T1> <T2>)`
+will *not* be instantiated nor called when trying to invoke
+`(LESS (TRIPLE <T1> <T2> <T3>) ...)` even if `TRIPLE` is a subclass of `PAIR`.
+
 
 Appendix: design philosophy
 ---------------------------

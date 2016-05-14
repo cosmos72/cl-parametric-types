@@ -17,28 +17,8 @@
 (def-suite triple :in suite)
 (in-suite triple)
 
-(template (&optional (<t1> t) (<t2> t) (<t3> t))
-  (defun triple-less (a b)
-    (declare (type (cpt.stl:triple <t1> <t2> <t3>) a b))
-    ;; struct accessors want the FULL list of template arguments, in this case (<t1> <t2> <t3>)
-    ;; even if in practice the accessor type alone could suffice...
-    (let ((a1 (triple-first (<t1> <t2> <t3>) a))
-          (b1 (triple-first (<t1> <t2> <t3>) b)))
-      (block nil
-        (when (< a1 b1)
-          (return t))
-        (when (= a1 b1)
-          (let ((a2 (triple-second (<t1> <t2> <t3>) a))
-                (b2 (triple-second (<t1> <t2> <t3>) b)))
-            (when (< a2 b2)
-              (return t))
-            (when (= a2 b2)
-              (< (triple-third (<t1> <t2> <t3>) a)
-                 (triple-third (<t1> <t2> <t3>) b)))))))))
-
 (def-test triple (:compile-at :definition-time)
   (is-true
-   (triple-less
-    (bit fixnum integer)
-    (make-triple (bit fixnum integer) :first 1 :second 2 :third most-positive-fixnum)
-    (make-triple (bit fixnum integer) :first 1 :second 2 :third (1+ most-positive-fixnum)))))
+   (less ((triple bit fixnum integer))
+     (make-triple (bit fixnum integer) :first 1 :second 2 :third most-positive-fixnum)
+     (make-triple (bit fixnum integer) :first 1 :second 2 :third (1+ most-positive-fixnum)))))

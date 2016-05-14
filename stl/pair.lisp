@@ -50,8 +50,10 @@
     (let ((a1 (pair-first (<t1> <t2>) a))
           (b1 (pair-first (<t1> <t2>) b)))
       (cond
-        ((< a1 b1) t)
-        ((= a1 b1)
-         (< (pair-second (<t1> <t2>) a)
-            (pair-second (<t1> <t2>) b)))))))
+        (((quote! less) (<t1>) a1 b1) t)
+        (((quote! less) (<t1>) b1 a1) nil)
+        (t
+         ((quote! less) (<t2>)
+	              (pair-second (<t1> <t2>) a)
+                      (pair-second (<t1> <t2>) b)))))))
 
