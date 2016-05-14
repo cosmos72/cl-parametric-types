@@ -20,27 +20,24 @@ aliases for common types
 
 (in-package :cl-parametric-types.lang)
 
-(deftype sarray (&optional (element-type '*) (dimensions '*))
-  "simple-array"
-  `(simple-array ,element-type ,dimensions))
-
-(deftype sarray-t (&optional (dimensions '*))
+(deftype simple-t-array (&optional (dimensions '*))
   "simple-array of T"
   `(simple-array t ,dimensions))
 
-(deftype svector (&optional (element-type '*) (size '*))
+(deftype simple-array1 (&optional (element-type '*) (size '*))
   "one-dimensional simple-array"
   `(simple-array ,element-type (,size)))
 
-(deftype svector-t (&optional (size '*))
+(deftype simple-t-array1 (&optional (size '*))
   "one-dimensional simple-array of T. Equivalent to misnamed CL:SIMPLE-VECTOR"
   `(simple-array t (,size)))
 
-(deftype sstring (&optional (size '*))
+(deftype simple-char-string (&optional (size '*))
   "one-dimensional simple-array of CHARACTER"
   `(svector character ,size))
 
-(deftype sbstring (&optional (size '*))
+#-(and)
+(deftype simple-base-string (&optional (size '*))
   "one-dimensional simple-array of BASE-CHAR. Equivalent to CL:SIMPLE-BASE-STRING"
   `(svector base-char ,size))
 

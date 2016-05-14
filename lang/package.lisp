@@ -26,4 +26,7 @@
 
            #:first-atom #:recurse-first-atom #:lambda-list->args
 
-           #:sarray #:sarray-t #:svector #:svector-t #:sstring #:sbstring))
+           #:simple-t-array
+           #:simple-array-1 #:simple-t-array-1
+           #:simple-char-string))
+
