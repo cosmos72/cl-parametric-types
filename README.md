@@ -156,8 +156,8 @@ CL-PARAMETRIC-TYPES exports the following macros:
 
         (template (&optional (<t1> t) (<t2> t))
           (defclass pair2 ()
-            ((first  :type <t1>)
-             (second :type <t2>))))
+            (first  :type <t1>)
+            (second :type <t2>)))
 
   is conceptually equivalent to the following C++ code
 
@@ -258,11 +258,11 @@ The equivalent C++ code would be:
         bool less<pair<T1, T2> >(pair<T1,T2> a, pair<T1,T2> b) 
         {
             T1 a1 = a.first, b1 = b.second;
-	    if (less<T1>(a1, b1))
-	        return true;
-	    if (less<T1>(b1, a1))
-	        return false;
-	    return less<T2>(a.second, b.second);
+            if (less<T1>(a1, b1))
+                return true;
+            if (less<T1>(b1, a1))
+                return false;
+            return less<T2>(a.second, b.second);
         };
 
 Note that, just like in C++, partially specialized functions and types
