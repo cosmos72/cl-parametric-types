@@ -28,7 +28,7 @@
      #:struct-name-and-options->include
      #:struct-name-and-options->superclass-name)
 
-  (:export #:defstruct #:template #:template*
+  (:export #:defstruct #:alias #:template #:template*
 
            #:make #:copy #:typexpand #:eval! #:quote!
 

@@ -14,8 +14,7 @@
 
 #|
 
-This file does XXX.
-
+Public API: TEMPLATE macro and friends
 
 |#
 
@@ -30,15 +29,17 @@ This file does XXX.
 	 (function-args  (lambda-list->args lambda-list)))
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
-	 (setf (get-definition 'template-function ',name :specialized-for ',specialized-for)
+	 (setf (get-definition 'template-function ',name ',specialized-for)
 	       '(template-function ,template-args
 		 ,@(parse-function-declaims name declaims)
 		 (,defun ,name ,lambda-list
 		   ,@body))))
-       ;; rely on DEFMACRO to parse the TEMPLATE-ARGS lambda list
-       (defmacro ,name (,template-args ,@lambda-list)
-	 (let ((concrete-function (instantiate 'template-function ',name `(,,@template-types))))
-	   `(,concrete-function ,,@function-args))))))
+       ,(if specialized-for
+	    `',name
+	    ;; rely on DEFMACRO to parse the TEMPLATE-ARGS lambda list
+	    `(defmacro ,name (,template-args ,@lambda-list)
+	       `(,(instantiate 'template-function ',name `(,,@template-types))
+		  ,,@function-args))))))
 
 
 (defmacro template-struct
@@ -50,26 +51,48 @@ This file does XXX.
 	 (name-and-options (parse-struct-name-and-options  name-and-options))
 	 (name             (struct-name-and-options->name  name-and-options))
 	 (superclass-name  (struct-name-and-options->superclass-name name-and-options))
-         (superclass-depends-on-templates (type-is-template-of superclass-name template-types)))
+         (template-superclass-name? (or specialized-for
+					(type-is-template-of superclass-name template-types)))
+	 (template-superclass-name    (if template-superclass-name? superclass-name nil))
+	 (nontemplate-superclass-name (if template-superclass-name? nil superclass-name))
+	 (template-slot-names    (when specialized-for (mapcar #'first-atom slot-descriptions)))
+	 (nontemplate-slot-names nil))
+    (unless specialized-for
+      (dolist (slot-description slot-descriptions)
+	(let ((slot-name (first-atom slot-description)))
+	  (if (member slot-name template-types)
+	      (push slot-name template-slot-names)
+	      (push slot-name nontemplate-slot-names))))
+      (setf template-slot-names (nreverse template-slot-names)
+	    nontemplate-slot-names (nreverse nontemplate-slot-names)))
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
-	 (setf (get-definition 'template-type ',name :specialized-for ',specialized-for)
+	 (setf (get-definition 'template-type ',name ',specialized-for)
 	       '(template-struct ,template-args
+		 ;; set *package*
+		 ;; reason: it may have changed in the meantime,
+		 ;; and (defstruct A::FOO ...) defines functions in *package*, not in A!
+		 (in-package ,(package-name *package*))
 		 ,@(parse-struct-declaims name declaims)
-		 (,defstruct ,name-and-options
-		   ,@slot-descriptions)
-                 ,@(when superclass-depends-on-templates
-                         ;; superclass is a template that depends on TEMPLATE-TYPES.
-                         ;; so we will know superclass accessors only after instantiating
-                         ;; the struct itself...
-                         `((define-struct-inherited-accessors! (quote! ,name) ,superclass-name)
-                           ',name)))))
-       (define-struct-make&copy! ,name)
-       (define-struct-accessors! ,name ,(unless superclass-depends-on-templates superclass-name)
-                                 ,(mapcar 'first-atom slot-descriptions))
-       ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
-       (deftype ,name ,template-args
-	 (instantiate 'template-type ',name `(,,@template-types))))))
+		 (,defstruct ,name-and-options ,@slot-descriptions)
+                 ,@(when (or specialized-for template-superclass-name template-slot-names)
+                         `((define-struct-accessors! (quote! ,name) (quote! ,specialized-for)
+			     ,template-superclass-name
+			     ,template-slot-names)
+			   ',name)))))
+       ,@(if specialized-for
+	     `',name
+	     `((define-struct-make&copy! ,name)
+	       (define-struct-accessors! ,name nil
+		   ;; if superclass is a template that depends on TEMPLATE-TYPES,
+		   ;; we will know superclass slots only after instantiating
+		   ;; the struct itself...
+		   ,nontemplate-superclass-name
+		 ;; structure type predicate (foo-p ...) behaves exactly like a slot named P
+		 (p ,@nontemplate-slot-names))
+	       ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
+	       (deftype ,name ,template-args
+		 (instantiate 'template-type ',name `(,,@template-types))))))))
 
 
 (defmacro template-class
@@ -81,7 +104,7 @@ This file does XXX.
   (let ((template-types (lambda-list->args template-args)))
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
-	 (setf (get-definition 'template-type ',name :specialized-for ',specialized-for)
+	 (setf (get-definition 'template-type ',name ',specialized-for)
 	       '(template-class ,template-args
 		 ,@(parse-class-declaims name declaims)
 		 (,defclass ,name ,direct-superclasses

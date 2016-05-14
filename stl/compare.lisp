@@ -34,3 +34,41 @@
   (defun greater-equal (a b)
     (declare (type <t> a b))
     (not (less (<t>) a b))))
+
+
+(template (<t>)
+  (:specialized-for ((simple-array <t>)))
+  (declaim (notinline less))
+  (defun less (a b)
+    (declare (type (simple-array <t>) a b))
+    (let ((rank-a (array-rank a))
+	  (rank-b (array-rank b)))
+      (cond
+	;; array with smaller rank is "less"
+	((< rank-a rank-b) (return-from less t))
+	((> rank-a rank-b) (return-from less nil))))
+    (let* ((an (array-total-size a))
+	   (bn (array-total-size b))
+	   (n  (min na nb)))
+      (dotimes (i n)
+	(let ((ai (row-major-aref a i))
+	      (bi (row-major-aref b i)))
+	  (cond
+	    ((less (<t>) ai bi) (return-from less t))
+	    ((less (<t>) bi ai) (return-from less nil)))))
+      ;; common initial elements are equal -> shorter array is "less"
+      (< an bn))))
+
+
+(template ()
+  (:specialized-for ((simple-array character (*))))
+  (defun less (a b)
+    (declare (type (simple-array character (*)) a b))
+    (string< a b)))
+		    
+(template ()
+  (:specialized-for (simple-base-string))
+  (defun less (a b)
+    (declare (type simple-base-string a b))
+    (string< a b)))
+		    
