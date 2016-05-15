@@ -22,8 +22,10 @@
   :pathname "stl/"
   :components
   ((:file "package")
-   (:file "compare"    :depends-on ("package"))
-   (:file "pair"       :depends-on ("compare"))
-   (:file "triple"     :depends-on ("pair"))))
+   (:file "compare"     :depends-on ("package"))
+   (:file "pair"        :depends-on ("compare"))
+   (:file "triple"      :depends-on ("pair"))
+   (:file "collection"  :depends-on ("package"))
+   (:file "binary-tree" :depends-on ("collection"))))
 
 

@@ -12,22 +12,18 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
-(in-package :cl-user)
+#|
 
-(defpackage #:cl-parametric-types.lang
-  (:nicknames #:cpt.lang #:c+lang)
+ERROR!
 
-  (:use #:common-lisp)
+|#
 
-  (:shadow #:defstruct #:eval)
 
-  (:export #:defstruct #:alias #:eval #:eval! #:error!
-	   #:multi-subst #:tree-find
-           #:typexpand #:typexpand-1
+(in-package :cl-parametric-types.lang)
 
-           #:first-atom #:recurse-first-atom #:lambda-list->args
-
-           #:simple-t-array
-           #:simple-array-1 #:simple-t-array-1
-           #:simple-char-string))
-
+(defmacro error! (datum &rest arguments &environment env)
+  "invoke ERROR at macroexpansion time"
+  (push datum arguments)
+  (let ((args (loop :for arg :in arguments
+		 :collect (eval arg env))))
+    (apply 'error args)))

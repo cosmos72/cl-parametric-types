@@ -28,9 +28,9 @@
      #:struct-name-and-options->include
      #:struct-name-and-options->superclass-name)
 
-  (:export #:defstruct #:alias #:template #:template* #:typexpand
+  (:export #:defstruct #:alias #:template #:define-template #:typexpand
 
-	   #:eval! #:eval-splice! #:quote! #:name!
+	   #:error! #:eval! #:eval-splice! #:quote! #:name!
            #:make #:copy 
 
            #:instantiate-type     #:instantiate-function

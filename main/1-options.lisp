@@ -61,6 +61,14 @@ This file does XXX.
     `((declaim ,@(nreverse new-declaims)))))
 
 
+(defun parse-type-declaims (name declaims)
+  (declare (type list declaims))
+  (when declaims
+    (error "CL-PARAMETRIC-TYPES: error defining template-type ~S:
+  declaims are not (yet) supported for template-types,
+  found ~S" name declaims)))
+
+
 (defun parse-struct-declaims (name declaims)
   (declare (type list declaims))
   (when declaims

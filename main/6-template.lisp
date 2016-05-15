@@ -20,7 +20,7 @@ Public API: TEMPLATE macro and friends
 
 (in-package #:cl-parametric-types)
 
-(defmacro template-function
+(defmacro define-template-function
     ((&rest template-args)
 	(&key declaims specialized-for)
 	   (defun name lambda-list &body body))
@@ -42,7 +42,7 @@ Public API: TEMPLATE macro and friends
 		  ,,@function-args))))))
 
 
-(defmacro template-struct
+(defmacro define-template-struct
     ((&rest template-args)
 	(&key declaims specialized-for)
 	(defstruct name-and-options &rest slot-descriptions))
@@ -98,7 +98,7 @@ Public API: TEMPLATE macro and friends
 		 (instantiate 'template-type ',name `(,,@template-types))))))))
 
 
-(defmacro template-class
+(defmacro define-template-class
     ((&rest template-args)
 	(&key declaims specialized-for)
 	(defclass name direct-superclasses slot-descriptions
@@ -118,19 +118,26 @@ Public API: TEMPLATE macro and friends
 	 (instantiate 'template-type ',name `(,,@template-types))))))
 
 
-(defmacro template-type
-    ((&rest template-args) (&rest options)
-	(defclass-defstruct name &body body))
-  (ecase defclass-defstruct
-    ((defclass)
-     `(template-class ,template-args ,options
-	(defclass ,name ,@body)))
-    ((defstruct)
-     `(template-struct ,template-args ,options
-	(defstruct ,name ,@body)))))
+(defmacro define-template-type
+    ((&rest template-args)
+	(&key declaims specialized-for)
+	(deftype name lambda-list &body body))
+  
+  (let ((template-types (lambda-list->args template-args)))
+    `(progn
+       (eval-when (:compile-toplevel :load-toplevel :execute)
+	 (setf (get-definition 'template-type ',name ',specialized-for)
+	       '(template-type ,template-args
+		 ,@(parse-type-declaims name declaims)
+		 (,deftype name! ,lambda-list ,@body))))
+       ,(if specialized-for
+	    `',name
+	    ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
+	    `(deftype ,name ,template-args
+	       (instantiate 'template-type ',name `(,,@template-types)))))))
 
 
-(defmacro template*
+(defmacro define-template
     ((&rest template-args) (&rest options)
      &body template-definitions)
   (let ((forms nil)
@@ -144,14 +151,17 @@ Public API: TEMPLATE macro and friends
 	   (push
 	    (ecase macro
 	      ((defclass)
-	       `(template-class ,template-args (:declaims ,declaims ,@options)
-				(defclass ,name ,@body)))
+	       `(define-template-class ,template-args (:declaims ,declaims ,@options)
+		  (defclass ,name ,@body)))
 	      ((defstruct)
-	       `(template-struct ,template-args (:declaims ,declaims ,@options)
-				 (defstruct ,name ,@body)))
+	       `(define-template-struct ,template-args (:declaims ,declaims ,@options)
+		  (defstruct ,name ,@body)))
+	      ((deftype)
+	       `(define-template-type ,template-args (:declaims ,declaims ,@options)
+		  (deftype ,name ,@body)))
 	      ((defun)
-	       `(template-function ,template-args (:declaims ,declaims ,@options)
-				   (defun ,name ,@body))))
+	       `(define-template-function ,template-args (:declaims ,declaims ,@options)
+		  (defun ,name ,@body))))
 	    forms)
 	   (setf declaims nil)))))
     (setf forms (nreverse forms))
@@ -170,5 +180,5 @@ Public API: TEMPLATE macro and friends
        (dolist (option form)
          (push option options))
        (pop template-definitions))
-    `(template* ,template-args ,(nreverse options)
+    `(define-template ,template-args ,(nreverse options)
        ,@template-definitions)))

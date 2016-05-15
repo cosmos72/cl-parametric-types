@@ -14,7 +14,7 @@
 
 #|
 
-macro !
+EVAL and EVAL!
 
 |#
 

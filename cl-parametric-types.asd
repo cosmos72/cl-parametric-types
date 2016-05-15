@@ -28,8 +28,9 @@
      (:file "list"         :depends-on ("package"))
      (:file "tree"         :depends-on ("package"))
      (:file "alias"        :depends-on ("tree"))
-     (:file "types"        :depends-on ("package"))
      (:file "eval"         :depends-on ("package"))
+     (:file "error"        :depends-on ("eval"))
+     (:file "types"        :depends-on ("package"))
      (:file "typexpand"    :depends-on ("package"))
      (:file "defstruct"    :depends-on ("typexpand"))))
 
