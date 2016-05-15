@@ -22,6 +22,9 @@
   (:shadowing-import-from #:cl-parametric-types
                           #:defstruct)
 
+  (:import-from #:cl-parametric-types
+                #:log.info #:log.debug)
+  
   (:export #:less #:less-equal #:greater #:greater-equal
            
            #:pair #:make-pair #:copy-pair #:pair-p

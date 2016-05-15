@@ -17,62 +17,102 @@
 ;;;; ** Functions related to collections
 
 (template (<t>)
-  (defstruct iterator))
+
+  (defstruct iterator)
 
 
-(template (<t>)
   (defun clear (collection)
     "Remove all elements from COLLECTION."
-    (error! "No specialization of ~s for (~s)" 'clear '<t>)))
+    (error! "No specialization of ~s for (~s)" 'clear '<t>))
 
 
-(template (<t>)
   (declaim (inline empty?))
   (defun empty? (collection)
     "Return t if COLLECTION is empty, otherwise return nil.
 Default implementation: (ZEROP (SIZE (<T>) COLLECTION))"
     (declare (type <t> collection))
-    (zerop (size (<t>) collection))))
+    (zerop (size (<t>) collection)))
 
 
-(template (<t>)
   (defun size (collection)
     "Return number of elements in COLLECTION."
     (declare (type <t> collection))
-    (error! "No specialization of ~s for (~s)" 'size '<t>)))
+    (error! "No specialization of ~s for (~s)" 'size '<t>))
 
 
-(template (<t>)
-  (defun lookup (set-or-map element)
+  (defun find-iter (set-or-map element)
     "Return iterator-to-element if SET-OR-MAP contains ELEMENT,
 otherwise return nil."
-    (error! "No specialization of ~s for (~s)" 'lookup '<t>)))
+    (error! "No specialization of ~s for (~s)" 'find-iter '<t>))
 
 
-(template (<t>)
+  (defun first-iter (collection)
+    "if COLLECTION is not empty, return iterator to first element.
+Otherwise return nil."
+    (error! "No specialization of ~s for (~s)" 'first-iter '<t>))
+
+
+  (defun last-iter (collection)
+    "if COLLECTION is not empty, return iterator to last element.
+Otherwise return nil."
+    (error! "No specialization of ~s for (~s)" 'last-iter '<t>))
+
+
   (declaim (inline get-value))
-  (defun get-value (map key &optional default)
-    "If there is a VALUE associated to KEY in MAP, return (values VALUE T).
+  (defun get-value (collection key &optional default)
+    "If there is a VALUE associated to KEY in COLLECTION, return (values VALUE T).
 otherwise return (values DEFAULT NIL).
-The default implementation calls (LOOKUP <T> MAP KEY)."
-    (let ((iter (lookup <t> map key)))
+The default implementation calls (FIND-ITER <T> MAP KEY)."
+    (declare (type <t> collection))
+    (let ((iter (find-iter <t> collection key)))
       (if iter
 	  (values (iter-second (iterator <t>) iter) t)
-	  (values default nil)))))
+	  (values default nil))))
 
 
-(template (<t>)
-  (defun set-value (map key value)
-    "If there is a VALUE associated to KEY in MAP, return (values VALUE T).
+  (declaim (inline first-value))
+  (defun first-value (collection &optional default-key default-value)
+    "If COLLECTION is not empty, return (values KEY VALUE T)
+where KEY is the first entry in COLLECTION.
+Otherwise return (values DEFAULT-KEY DEFAULT-VALUE NIL)
+The default implementation calls (FIRST-ITER <T> MAP KEY)."
+    (declare (type <t> collection))
+    (let ((iter (first-iter <t> collection)))
+      (if iter
+          (values (iter-first  (iterator <t>) iter)
+                  (iter-second (iterator <t>) iter)
+                  t)
+          (values default-key default-value nil))))
+
+
+  (declaim (inline last-value))
+  (defun last-value (collection &optional default-key default-value)
+    "If COLLECTION is not empty, return (values KEY VALUE T)
+where KEY is the last entry in COLLECTION.
+Otherwise return (values DEFAULT-KEY DEFAULT-VALUE NIL)
+The default implementation calls (LAST-ITER <T> MAP KEY)."
+    (declare (type <t> collection))
+    (let ((iter (last-iter <t> collection)))
+      (if iter
+          (values (iter-first  (iterator <t>) iter)
+                  (iter-second (iterator <t>) iter)
+                  t)
+          (values default-key default-value nil))))
+
+
+  (defun rem-value (collection key &optional default)
+    "If there is a VALUE associated to KEY in COLLECTION, remove it and return (values VALUE T).
 otherwise return (values DEFAULT NIL)."
-    (error! "No specialization of ~s for (~s)" 'set-value '<t>)))
+    (error! "No specialization of ~s for (~s)" 'rem-value '<t>))
 
 
-(defsetf get-value set-value)
+  (defun put-value (collection key value)
+    "Add KEY and VALUE in COLLECTION. If COLLECTION already contains KEY, overwrite its VALUE.
+Return VALUE."
+    (error! "No specialization of ~s for (~s)" 'put-value '<t>)))
 
 
-(template (<t>)
-  (defun rem-value (map key &optional default)
-    "If there is a VALUE associated to KEY in MAP, remove it and return (values VALUE T).
-otherwise return (values DEFAULT NIL)."
-    (error! "No specialization of ~s for (~s)" 'rem-value '<t>)))
+
+
+(defsetf get-value put-value)
+

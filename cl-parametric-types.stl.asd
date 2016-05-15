@@ -26,6 +26,7 @@
    (:file "pair"        :depends-on ("compare"))
    (:file "triple"      :depends-on ("pair"))
    (:file "collection"  :depends-on ("package"))
-   (:file "binary-tree" :depends-on ("collection"))))
+   (:file "binary-node" :depends-on ("pair"))
+   (:file "binary-tree" :depends-on ("collection" "binary-node"))))
 
 
