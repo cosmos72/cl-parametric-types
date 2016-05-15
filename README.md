@@ -249,8 +249,8 @@ Partial template specialization
                               (pair-second (<t1> <t2>) b)))))))
 
 Note that the *symbol* `LESS` does not have any special meaning inside the function `LESS`,
-so you *must* always specify the template parameters, even for recursive calls,
-in order to use the *macro* `LESS` that implements the template-instantiation mechanism.
+so you must *always* specify the template parameters, even for recursive calls,
+in order to use the *macro* `LESS`.
 
 The equivalent C++ code would be:
 
