@@ -30,16 +30,16 @@
     (let ((a1 (triple-first (<t1> <t2> <t3>) a))
           (b1 (triple-first (<t1> <t2> <t3>) b)))
       (cond
-        (((quote! less) (<t1>) a1 b1) t)
-        (((quote! less) (<t1>) b1 a1) nil)
+        ((less (<t1>) a1 b1) t)
+        ((less (<t1>) b1 a1) nil)
         (t
          (let ((a2 (triple-second (<t1> <t2> <t3>) a))
 	       (b2 (triple-second (<t1> <t2> <t3>) b)))
 	   (cond
-	     (((quote! less) (<t2>) a2 b2) t)
-	     (((quote! less) (<t2>) b2 a2) nil)
+	     ((less (<t2>) a2 b2) t)
+	     ((less (<t2>) b2 a2) nil)
 	     (t
-	      ((quote! less) (<t3>)
+	      (less (<t3>)
 		    (triple-third (<t1> <t2> <t3>) a)
 		    (triple-third (<t1> <t2> <t3>) b))))))))))
 

@@ -32,7 +32,7 @@ Public API: TEMPLATE macro and friends
 	 (setf (get-definition 'template-function ',name ',specialized-for)
 	       '(template-function ,template-args
 		 ,@(parse-function-declaims name declaims)
-		 (,defun ,name ,lambda-list
+		 (,defun name! ,lambda-list
 		   ,@body))))
        ,(if specialized-for
 	    `',name
@@ -49,6 +49,9 @@ Public API: TEMPLATE macro and friends
 
   (let* ((template-types   (lambda-list->args template-args))
 	 (name-and-options (parse-struct-name-and-options  name-and-options))
+	 (name!-and-options (if (consp name-and-options)
+				(cons 'name! (rest name-and-options))
+				'name!))
 	 (name             (struct-name-and-options->name  name-and-options))
 	 (superclass-name  (struct-name-and-options->superclass-name name-and-options))
          (template-superclass-name? (or specialized-for
@@ -74,7 +77,7 @@ Public API: TEMPLATE macro and friends
 		 ;; and (defstruct A::FOO ...) defines functions in *package*, not in A!
 		 (in-package ,(package-name *package*))
 		 ,@(parse-struct-declaims name declaims)
-		 (,defstruct ,name-and-options ,@slot-descriptions)
+		 (,defstruct ,name!-and-options ,@slot-descriptions)
                  ,@(when (or specialized-for template-superclass-name template-slot-names)
                          `((define-struct-accessors! (quote! ,name) (quote! ,specialized-for)
 			     ,template-superclass-name
@@ -107,7 +110,7 @@ Public API: TEMPLATE macro and friends
 	 (setf (get-definition 'template-type ',name ',specialized-for)
 	       '(template-class ,template-args
 		 ,@(parse-class-declaims name declaims)
-		 (,defclass ,name ,direct-superclasses
+		 (,defclass name! ,direct-superclasses
 		   ,slot-descriptions
 		   ,@options))))
        ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list

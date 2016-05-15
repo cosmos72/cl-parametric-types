@@ -23,37 +23,42 @@ This file does XXX.
 
 (defun parse-function-declaims (name declaims)
   (declare (type list declaims))
-  (dolist (form declaims)
-    (destructuring-bind (declaim-name &rest specifiers) form
-      (unless (eq 'declaim declaim-name)
-	(error "CL-PARAMETRIC-TYPES: unsupported declaim
+  (let ((new-declaims nil)
+	(cons-name `(,name)))
+    (dolist (form declaims)
+      (destructuring-bind (declaim-name &rest specifiers) form
+	(unless (eq 'declaim declaim-name)
+	  (error "CL-PARAMETRIC-TYPES: unsupported declaim
   for template-function ~S: expecting (DECLAIM ...)
   found ~S" name form))
 
-      (dolist (specifier specifiers)
-	(destructuring-bind (inline-or-ftype &rest args) specifier
-	  (case inline-or-ftype
-	    ((inline)
-	     (unless (equal `(,name) args)
-	       (error "CL-PARAMETRIC-TYPES: unsupported (DECLAIM (INLINE ...))
+	(dolist (specifier specifiers)
+	  (destructuring-bind (inline-or-ftype &rest args) specifier
+	    (ecase inline-or-ftype
+	      ((inline)
+	       (if (equal cons-name args)
+		   (push '(inline name!) new-declaims)
+		   (error "CL-PARAMETRIC-TYPES: unsupported (DECLAIM (INLINE ...))
   before template-function ~S:
   expecting (DECLAIM (INLINE ~S))
   found (DECLAIM ~S)" name name specifier)))
 
-	    ((notinline)
-	     (unless (equal `(,name) args)
-	       (error "CL-PARAMETRIC-TYPES: unsupported (DECLAIM (NOTINLINE ...))
+	      ((notinline)
+	       (if (equal cons-name args)
+		   (push '(notinline name!) new-declaims)
+		   (error "CL-PARAMETRIC-TYPES: unsupported (DECLAIM (NOTINLINE ...))
   before template-function ~S:
   expecting (DECLAIM (NOTINLINE ~S))
   found (DECLAIM ~S)" name name specifier)))
 
-	    ((ftype)
-	     (unless (equal `(,name) (rest args))
-	       (error "CL-PARAMETRIC-TYPES: unsupported (DECLAIM (FTYPE ...))
+	      ((ftype)
+	       (if (equal cons-name (rest args))
+		   (push `(ftype ,(first args) name!) new-declaims)
+		   (error "CL-PARAMETRIC-TYPES: unsupported (DECLAIM (FTYPE ...))
   before template-function ~S:
   expecting (DECLAIM (FTYPE (...) ~S))
   found (DECLAIM ~S)" name name specifier))))))))
-  declaims)
+    `((declaim ,@(nreverse new-declaims)))))
 
 
 (defun parse-struct-declaims (name declaims)

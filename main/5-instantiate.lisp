@@ -20,6 +20,7 @@ Machinery to instantiate templates: INSTANTIATE function and friends
 
 (in-package #:cl-parametric-types)
 
+(defconstant name!  'name!)
 (defconstant quote! 'quote!)
 
 (defun kind-name (kind)
@@ -53,7 +54,7 @@ cannot instantiate ~S"
 	(let ((forms (cddr definition)))
 	  (values
 	   (multi-subst (cons concrete template-values)
-			(cons name     template-params)
+			(cons 'name!   template-params)
 			(if (rest forms)
 			    `(progn ,@forms)
 			    (first forms))

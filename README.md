@@ -242,15 +242,15 @@ Partial template specialization
             (let ((a1 (pair-first (<t1> <t2>)) a)
                   (b1 (pair-first (<t1> <t2>)) b))
               (cond
-                (((quote! less) (<t1>) a1 b1) t)
-                (((quote! less) (<t1>) b1 a1) nil)
+                ((less (<t1>) a1 b1) t)
+                ((less (<t1>) b1 a1) nil)
                 (t
-                 ((quote! less) (<t2>) (pair-second (<t1> <t2>) a)
-                                       (pair-second (<t1> <t2>) b)))))))
+                 (less (<t2>) (pair-second (<t1> <t2>) a)
+                              (pair-second (<t1> <t2>) b)))))))
 
-The ugly `(QUOTE! LESS)` stuff is a (hopefully temporary) workaround,
-it prevents `LESS` to be interpreted as the function currently being defined
-by the template, i.e. as `LESS ((PAIR <T1> <T2>))`
+Note that the *symbol* `LESS` does not have any special meaning inside the function `LESS`,
+so you *must* always specify the template parameters, even for recursive calls,
+in order to use the *macro* `LESS` that implements the template-instantiation mechanism.
 
 The equivalent C++ code would be:
 
@@ -267,10 +267,10 @@ The equivalent C++ code would be:
 
 Note that, just like in C++, partially specialized functions and types
 are used when their specialization *pattern* matches the actual types,
-ignoring any superclass<->subclass relationship.
+ignoring any subclass/superclass relationship.
 
 In other words, the function `LESS` specialized for `(PAIR <T1> <T2>)`
-will *not* be instantiated nor called when trying to invoke
+will *not* be considered when trying to instantiate, compile and invoke
 `(LESS (TRIPLE <T1> <T2> <T3>) ...)` even if `TRIPLE` is a subclass of `PAIR`.
 
 
