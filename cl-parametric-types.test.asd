@@ -26,3 +26,11 @@
    (:file "pair"       :depends-on ("package"))
    (:file "triple"     :depends-on ("pair"))))
 
+
+(defmethod asdf:perform :after ((operation asdf:load-op)
+                                (component (eql (asdf:find-system :cl-parametric-types.test))))
+  (asdf:test-system :cl-parametric-types.test))
+
+(defmethod asdf:perform ((operation asdf:test-op)
+                         (component (eql (asdf:find-system :cl-parametric-types.test))))
+  (uiop:symbol-call :5am :run! (uiop:find-symbol* :suite :cl-parametric-types.test)))

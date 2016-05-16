@@ -20,12 +20,6 @@
 ;;;; For a sorted-set implementation, see sorted-set.lisp
 
 
-(template (<k> <v> &optional (<less> (instantiate-function 'less `(,<k>))))
-  (defstruct binary-tree
-    (root   nil :type (or null (binary-node <k> <v>)))
-    (count  0   :type fixnum)))
-
-
 (alias ((<tree>    (binary-tree <k> <v> <less>))
         (<node>    (binary-node <k> <v>))
         (<kvl>     (<k> <v> <less>))
@@ -35,26 +29,30 @@
         (left-of   binary-node-left)
         (right-of  binary-node-right) 
         (parent-of binary-node-parent))
-             
-    (template (<k> <v> &optional (<less> (instantiate-function 'less `(,<k>))))
+
+
+  (template (<k> <v> &optional (<less> (instantiate-function 'less `(,<k>))))
+    (defstruct binary-tree
+      (root   nil :type (or null <node>))
+      (first  nil :type (or null <node>))
+      (last   nil :type (or null <node>))
+      (count  0   :type fixnum)))
+      
+
+  (template (<k> <v> &optional (<less> (instantiate-function 'less `(,<k>))))
       (:specialized-for (<tree>))
 
       (deftype iterator () '<node>)
 
-      (declaim (inline clear))
-      (defun clear (tree)
-        "Remove all elements from TREE. Return TREE."
-        (setf (root-of  <kvl> tree) nil
-              (count-of <kvl> tree) 0)
-        tree)
 
 
+      ;; capacity
+      
       (declaim (inline empty?))
       (defun empty? (tree)
-        "Return t if TREE is empty, otherwise return nil."
+        "Return T if TREE is empty, otherwise return NIL."
         (declare (type <tree> tree))
         (null (root-of <kvl> tree)))
-
 
       (declaim (inline size))
       (defun size (tree)
@@ -63,64 +61,84 @@
         (count-of <kvl> tree))
 
 
-      (declaim (notinline find-iter))
-      (defun find-iter (tree key)
-        "If TREE contains KEY then return iterator pointing to KEY, otherwise return NIL."
+
+      ;; iterators
+
+      (declaim (inline begin^))
+      (defun begin^ (tree)
+        "If TREE is not empty, return iterator to first element.
+Otherwise return END^"
+        (declare (type <tree> tree))
+        (binary-tree-first <kvl> tree))
+
+      (declaim (inline end^))
+      (defun end^ (tree)
+        "Return iterator \"one past last element\" in TREE."
+        (declare (type <tree> tree))
+        nil)
+      
+      (declaim (inline back^))
+      (defun back^ (tree)
+        "If TREE is not empty, return iterator to last element.
+Otherwise return END^"
+        (declare (type <tree> tree))
+        (binary-tree-last <kvl> tree))
+
+
+
+      ;; lookup
+
+      (declaim (notinline find^))
+      (defun find^ (tree key)
+        "If TREE contains KEY, return iterator pointing to it.
+Otherwise return END^."
         (declare (type <tree> tree)
                  (type <k> key))
-        (let ((node (root-of <kvl> tree)))
+        (let ((node (root-of <kvl> tree))
+              (best nil))
           (loop :named loop :while node :do
              (let ((xkey (binary-node-first <kv> node)))
-               (cond
-                 ((<less> key xkey) (setf node (left-of  <kv> node)))
-                 ((<less> xkey key) (setf node (right-of <kv> node)))
-                 (t
-                  (return-from loop node)))))))
+               (if (<less> key xkey)
+                   (setf node (left-of  <kv> node))
+                   (setf best node ;; remember "best" node
+                         node (right-of <kv> node)))))
+          (when best
+            (let ((xkey (binary-node-first <kv> best)))
+              (unless (<less> xkey key)
+                best)))))
 
 
-      (declaim (inline set-value))
-      (defun set-value (map key value)
-        (declare (type <tree> tree)
-                 (type <k> key)
-                 (type <v> value))
-        (binary-tree-put <kvl> tree key value)
-        value)
 
+      ;; modifiers                  
 
-      (defun rem-value (map key &optional default)
+      (declaim (inline clear))
+      (defun clear (tree)
+        "Remove all elements from TREE. Return TREE."
+        (setf (root-of  <kvl> tree) nil
+              (count-of <kvl> tree) 0)
+        tree)
+
+      (defun insert^ (map key &optional value)
         (declare (type <tree> tree))
         ;; TODO
         )
 
-
-      (defun first-iter (tree)
-        "Return iterator to the first KEY in TREE,
-or NIL if TREE is empty"
+      (defun put^ (map key &optional value)
         (declare (type <tree> tree))
-        (let ((node (root-of <kvl> tree)))
-          (when node
-            (loop :for child = (left-of <kv> node)
-               :while child :do
-               (setf node child)))
-          node))
+        ;; TODO
+        )
 
-
-      (defun last-iter (tree)
-        "Return iterator to the last KEY in TREE,
-or NIL if TREE is empty"
+      (defun erase^ (map key &optional default)
         (declare (type <tree> tree))
-        (let ((node (root-of <kvl> tree)))
-          (when node
-            (loop :for child = (right-of <kv> node)
-               :while child :do
-               (setf node child)))
-          node)))
+        ;; TODO
+        ))
 
 
+  ;; helper functions
+  
+  (template (<k> <v> &optional (<less> (instantiate-function 'less `(,<k>))))
 
-
-    (template (<k> <v> &optional (<less> (instantiate-function 'less `(,<k>))))
-      (defun binary-tree-put (tree key value)
+    (defun binary-tree-put (tree key value)
         "Add KEY to TREE if not present, then associate KEY to VALUE in TREE.
 Return inserted NODE if KEY was not present, otherwise return NIL.
 Does *not* rebalance TREE."
@@ -146,16 +164,16 @@ Does *not* rebalance TREE."
                     (setf (binary-node-second <kv> node) value)
                     (return-from binary-tree-put nil)))))))
 
-      ;; no such key, create node for it
-      (setf node (make-binary-node <kv> :first key :second value :parent parent))
-      (incf (binary-tree-count <kvl> tree))
-      (if parent
-          (if left
-              (setf (binary-node-left  <kl> parent) node)
-              (setf (binary-node-right <kl> parent) node))
-          ;; binary-tree is empty
-          (setf (root-of tree) node))
+        ;; no such key, create node for it
+        (setf node (make-binary-node <kv> :first key :second value :parent parent))
+        (incf (binary-tree-count <kvl> tree))
+        (if parent
+            (if left
+                (setf (binary-node-left  <kl> parent) node)
+                (setf (binary-node-right <kl> parent) node))
+            ;; binary-tree is empty
+            (setf (root-of tree) node))
       
-      ;; (rebalance-after-insert <kvl> tree node)
-      node)))
+        ;; (rebalance-after-insert <kvl> tree node)
+        node)))
 
