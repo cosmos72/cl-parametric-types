@@ -41,6 +41,20 @@
 	     (t
 	      (less (<t3>)
 		    (triple-third (<t1> <t2> <t3>) a)
-		    (triple-third (<t1> <t2> <t3>) b))))))))))
+		    (triple-third (<t1> <t2> <t3>) b)))))))))
 
+
+  (declaim (notinline equal-to))
+  (defun equal-to (a b)
+    (declare (type (triple <t1> <t2> <t3>) a b))
+    (and
+     (equal-to (<t1>)
+               (triple-first (<t1> <t2> <t3>) a)
+               (triple-first (<t1> <t2> <t3>) b))
+     (equal-to (<t2>)
+	       (triple-second (<t1> <t2> <t3>) a)
+	       (triple-second (<t1> <t2> <t3>) b))
+     (equal-to (<t3>)
+	       (triple-third (<t1> <t2> <t3>) a)
+	       (triple-third (<t1> <t2> <t3>) b)))))
 

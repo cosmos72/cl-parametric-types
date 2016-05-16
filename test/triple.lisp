@@ -17,8 +17,12 @@
 (def-suite triple :in suite)
 (in-suite triple)
 
-(def-test triple (:compile-at :definition-time)
-  (is-true
-   (less ((triple bit fixnum integer))
-     (make-triple (bit fixnum integer) :first 1 :second 2 :third most-positive-fixnum)
-     (make-triple (bit fixnum integer) :first 1 :second 2 :third (1+ most-positive-fixnum)))))
+(alias ((<triple> (triple bit fixnum integer)))
+  (def-test triple (:compile-at :definition-time)
+    (let ((a (make-triple (bit fixnum integer) :first 1 :second 2 :third most-positive-fixnum))
+          (b (make-triple (bit fixnum integer) :first 1 :second 2 :third (1+ most-positive-fixnum))))
+      
+      (is-false (less     (<triple>) a a))
+      (is-true  (less     (<triple>) a b))
+      (is-true  (equal-to (<triple>) a a))
+      (is-false (equal-to (<triple>) a b)))))

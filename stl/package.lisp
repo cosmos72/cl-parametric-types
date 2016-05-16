@@ -26,6 +26,7 @@
                 #:log.info #:log.debug)
   
   (:export #:less #:less-equal #:greater #:greater-equal
+           #:equal-to #:not-equal-to
            
            #:pair #:make-pair #:copy-pair #:pair-p
            #:pair-first #:pair-second

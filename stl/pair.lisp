@@ -38,6 +38,7 @@
 
 (template (&optional (<t1> t) (<t2> t))
   (:specialized-for ((pair <t1> <t2>)))
+
   (declaim (notinline less))
   (defun less (a b)
     (declare (type (pair <t1> <t2>) a b))
@@ -55,5 +56,16 @@
         (t
          (less (<t2>)
 	       (pair-second (<t1> <t2>) a)
-	       (pair-second (<t1> <t2>) b)))))))
+	       (pair-second (<t1> <t2>) b))))))
 
+
+  (declaim (notinline equal-to))
+  (defun equal-to (a b)
+    (declare (type (pair <t1> <t2>) a b))
+    (and
+     (equal-to (<t1>)
+               (pair-first (<t1> <t2>) a)
+               (pair-first (<t1> <t2>) b))
+     (equal-to (<t2>)
+	       (pair-second (<t1> <t2>) a)
+	       (pair-second (<t1> <t2>) b)))))

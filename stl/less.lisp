@@ -45,8 +45,8 @@
 	  (rank-b (array-rank b)))
       (cond
 	;; array with smaller rank is "less"
-	((< rank-a rank-b) (return-from less t))
-	((> rank-a rank-b) (return-from less nil))))
+	((< rank-a rank-b) (return-from name! t))
+	((> rank-a rank-b) (return-from name! nil))))
     (let* ((an (array-total-size a))
 	   (bn (array-total-size b))
 	   (n  (min na nb)))
@@ -54,8 +54,8 @@
 	(let ((ai (row-major-aref a i))
 	      (bi (row-major-aref b i)))
 	  (cond
-	    ((less (<t>) ai bi) (return-from less t))
-	    ((less (<t>) bi ai) (return-from less nil)))))
+	    ((less (<t>) ai bi) (return-from name! t))
+	    ((less (<t>) bi ai) (return-from name! nil)))))
       ;; common initial elements are equal -> shorter array is "less"
       (< an bn))))
 

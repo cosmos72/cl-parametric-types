@@ -17,8 +17,12 @@
 (def-suite pair :in suite)
 (in-suite pair)
 
-(def-test pair (:compile-at :definition-time)
-  (is-true
-   (less ((pair fixnum fixnum))
-    (make-pair (fixnum fixnum) :first 1 :second 2)
-    (make-pair (fixnum fixnum) :first 1 :second 3))))
+(alias ((<pair> (pair fixnum fixnum)))
+  (def-test pair (:compile-at :definition-time)
+    (let ((a (make-pair (fixnum fixnum) :first 1 :second 2))
+          (b (make-pair (fixnum fixnum) :first 1 :second 3)))
+
+      (is-false (less     (<pair>) a a))
+      (is-true  (less     (<pair>) a b))
+      (is-true  (equal-to (<pair>) a a))
+      (is-false (equal-to (<pair>) a b)))))
