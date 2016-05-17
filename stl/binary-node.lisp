@@ -18,9 +18,9 @@
 
 (template (<k> <v>)
   (defstruct (binary-node (:include (pair <k> <v>)))
-    (left   nil :type (or null name!)) ;; NAME! is an ugly wart, but (binary-node <k> <v>)
-    (right  nil :type (or null name!)) ;; currently causes infinite recursion...
-    (parent nil :type (or null name!))))
+    (left   nil :type (or null (binary-node <k> <v>)))
+    (right  nil :type (or null (binary-node <k> <v>)))
+    (parent nil :type (or null (binary-node <k> <v>)))))
 
 
 ;;;; ** Helper functions used by binary-tree subclasses

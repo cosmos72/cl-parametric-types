@@ -79,7 +79,7 @@ Public API: TEMPLATE macro and friends
 		 ,@(parse-struct-declaims name declaims)
 		 (,defstruct ,name!-and-options ,@slot-descriptions)
                  ,@(when (or specialized-for template-superclass-name template-slot-names)
-                         `((define-struct-accessors! (quote! ,name) (quote! ,specialized-for)
+                         `((define-struct-accessors! ,name (quote! ,specialized-for)
 			     ,template-superclass-name
 			     ,template-slot-names)
 			   ',name)))))

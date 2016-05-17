@@ -29,3 +29,10 @@ This file does XXX.
   (when args
     `(when *compile-verbose*
        (format t ,@args))))
+
+(defvar *log.trace* nil)
+
+(defmacro log.trace (&rest args)
+  (when args
+    `(when (and *log.trace* *compile-verbose*)
+       (format t ,@args))))

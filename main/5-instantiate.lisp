@@ -26,10 +26,43 @@ Machinery to instantiate templates: INSTANTIATE function and friends
 (defun kind-name (kind)
   (string-downcase (symbol-name kind)))
 
+(declaim (type list *instantiating-types* *instantiating-functions*))
+
+(defvar *instantiating-types* nil
+  "ALIST of types currently being instantiated. Used to break infinite recursion.")
+
+(defvar *instantiating-functions* nil
+  "ALIST of functions currently being instantiated. Used to break infinite recursion.")
+
+
+(defun instantiating (kind name actual-types)
+  "Return concrete function/type name in case it is currently being
+instantiated."
+  (let ((alist
+         (case kind
+           (template-type     *instantiating-types*)
+           (template-function *instantiating-functions*))))
+    (when alist
+      (rest (assoc (cons name actual-types) alist :test 'equal)))))
+
+
+(defun acons-instantiating (name actual-types concrete alist)
+  "Return new value of ALIST that also includes the concrete function/type name
+currently being instantiated."
+  (acons (cons name actual-types) concrete alist))
+
+
+(defun concretize-cached (kind name actual-types)
+  "Cached version of CONCRETIZE. The cache is in alists
+*INSTANTIATING-TYPES* and *INSTANTIATING-FUNCTIONS*"
+  (or
+   (instantiating kind name actual-types)
+   (concretize kind name actual-types)))
+    
 
 (defmethod instantiate-definition (kind name actual-types)
   (declare (type list actual-types))
-  (let ((concrete (concretize kind name actual-types)))
+  (let ((concrete (concretize-cached kind name actual-types)))
     (multiple-value-bind (definition pattern template-types template-constraints)
 	(get-definition kind name actual-types)
 
@@ -73,21 +106,51 @@ cannot instantiate ~S"
     concrete))
 
 
-(defmethod instantiate (kind name actual-types)
+(defmethod instantiate :around (kind name actual-types)
+  "Use *INSTANTIATING-TYPES* and *INSTANTIATING-FUNCTIONS*
+as caches for concrete name of types/functions currently being instantiated,
+in order to break infinite recursions."
   (declare (type list actual-types))
-  (let ((concrete (concretize kind name actual-types))
-	(just-instantiated nil))
+  (log.trace "~&; attempt to use ~a ~s~&" (kind-name kind) (cons name actual-types))
+  (let ((concrete (instantiating kind name actual-types)))
+    (when concrete
+      (log.trace "~&; ~a ~s is currently being instantiated
+;   as ~s
+;   breaking infinite recursion~&"
+                 (kind-name kind) (cons name actual-types) concrete)
+      (return-from instantiate (values concrete nil)))
+    (setf concrete (concretize kind name actual-types))
+    (case kind
+      (template-type
+       (let ((*instantiating-types* (acons-instantiating name actual-types concrete
+                                                         *instantiating-types*)))
+         ;;(break "*instantiating-types* ~S" *instantiating-types*)
+         (call-next-method)))
+      (template-function
+       (let ((*instantiating-functions* (acons-instantiating name actual-types concrete
+                                                             *instantiating-functions*)))
+         (call-next-method)))
+      (otherwise
+       (call-next-method)))))
+          
+
+(defmethod instantiate (kind name actual-types)
+  (let* ((concrete (concretize-cached kind name actual-types))
+         (just-instantiated nil))
     (case kind
       ((template-accessor template-constructor)
        ;; struct accessors and constructors cannot be instantiated manually...
        ;; they should be already instantiated by typexpanding the struct name
-       ;; in the call to CONCRETIZE above.
+       ;; in the call to CONCRETIZE-CACHED above.
        (fdefinition concrete)) ;; signals error if not found
       (otherwise
        (handler-case
-	   (ecase kind
-	     (template-type     (find-class concrete))
-	     (template-function (fdefinition concrete)))
+           (progn
+             (ecase kind
+               (template-type     (find-class concrete))
+               (template-function (fdefinition concrete)))
+             (log.trace "~&; ~a ~s is already instantiated as ~s~&"
+                        (kind-name kind) (cons name actual-types) concrete))
 	 (condition ()
 	   (setf concrete (instantiate* kind name actual-types)
 		 just-instantiated t)))))
