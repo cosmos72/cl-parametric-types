@@ -24,17 +24,21 @@ aliases for common types
   "simple-array of T"
   `(simple-array t ,dimensions))
 
-(deftype simple-array1 (&optional (element-type '*) (size '*))
+(deftype simple-array-1 (&optional (element-type '*) (size '*))
   "one-dimensional simple-array"
   `(simple-array ,element-type (,size)))
 
-(deftype simple-t-array1 (&optional (size '*))
+(deftype simple-t-array-1 (&optional (size '*))
   "one-dimensional simple-array of T. Equivalent to misnamed CL:SIMPLE-VECTOR"
   `(simple-array t (,size)))
 
+(deftype char-string (&optional (size '*))
+  "one-dimensional array of CHARACTER"
+  `(array character (,size)))
+
 (deftype simple-char-string (&optional (size '*))
   "one-dimensional simple-array of CHARACTER"
-  `(svector character ,size))
+  `(simple-array character (,size)))
 
 #-(and)
 (deftype simple-base-string (&optional (size '*))

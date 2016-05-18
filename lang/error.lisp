@@ -25,5 +25,5 @@ ERROR!
   "invoke ERROR at macroexpansion time"
   (push datum arguments)
   (let ((args (loop :for arg :in arguments
-		 :collect (eval arg env))))
+		 :collect (eval-in-env arg env))))
     (apply 'error args)))

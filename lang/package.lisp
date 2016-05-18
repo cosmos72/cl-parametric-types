@@ -19,9 +19,9 @@
 
   (:use #:common-lisp)
 
-  (:shadow #:defstruct #:eval)
+  (:shadow #:defstruct)
 
-  (:export #:defstruct #:alias #:eval #:eval! #:error!
+  (:export #:defstruct #:alias #:eval-in-env #:eval! #:error!
 	   #:multi-subst #:tree-find
            #:typexpand #:typexpand-1
 
@@ -29,5 +29,5 @@
 
            #:simple-t-array
            #:simple-array-1 #:simple-t-array-1
-           #:simple-char-string))
+           #:char-string #:simple-char-string))
 

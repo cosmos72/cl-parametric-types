@@ -20,7 +20,7 @@
   (:use #:common-lisp #:cl-parametric-types.lang)
 
   (:shadowing-import-from #:cl-parametric-types.lang
-     #:defstruct #:eval)
+     #:defstruct)
    
   (:import-from #:cl-parametric-types.lang
      #:struct-name-and-options->name 
@@ -29,6 +29,10 @@
      #:struct-name-and-options->superclass-name)
 
   (:export #:defstruct #:alias #:template #:define-template #:typexpand
+
+           ;; types from cl-parametric-types.lang
+           #:simple-t-array #:simple-array-1 #:simple-t-array-1
+           #:char-string #:simple-char-string
 
 	   #:error! #:eval! #:eval-splice! #:quote! #:name!
            #:make #:copy 

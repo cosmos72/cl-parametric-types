@@ -78,6 +78,22 @@ Functions to simplify types, i.e. to replace:
        #||#   'fixnum)    
       (t      type))))
 
+(defun remove-stars (type)
+  (declare (type cons type))
+  (unless (null (cddddr type))
+    (error "REMOVE-STARS: list ~s is too long" type))
+  (let ((s0 (first type))
+        (s1 (or (second type) '*))
+        (s2 (or (third  type) '*))
+        (s3 (or (fourth type) '*)))
+    (if (eq '* s3)
+        (if (eq '* s2)
+            (if (eq '* s1)
+                s0
+                (list s0 s1))
+            (list s0 s1 s2))
+        type)))
+          
 (defun simplify-type-real (type)
   (declare (type cons type))
   (let ((first (first type))
@@ -85,12 +101,10 @@ Functions to simplify types, i.e. to replace:
         (hi (or (third  type) '*)))
     (block nil
       (when (eq '* hi)
-        (return
-          (if (eq '* lo)
-              first              ;; (xyz * *) -> xyz
-              (list first lo)))) ;; (xyz n *) -> (xyz n)
-      
-      (when (and (integerp hi) (integerp lo)
+        (return (remove-stars type)))
+
+      (when (and (eq 'integer first)
+                 (integerp hi) (integerp lo)
                  (is-power-of-2-minus-1? hi))
         (when (eql 0 lo)
           (return (simplify-type-unsigned-byte (list 'unsigned-byte (integer-length hi)))))
@@ -105,25 +119,50 @@ Functions to simplify types, i.e. to replace:
       'boolean
       type))
 
+(defun simplify-type-string (type)
+  (remove-stars type))
+
+
 (defun simplify-type-array (type)
   (declare (type cons type))
-  (let ((array-type   (first type))
-        (element-type (or (simplify-type (second type)) '*))
-        (dimensions   (or (third  type) '*)))
-    (block nil
-      (when (eq '* dimensions)
-        (return
-          (if (eq '* element-type)
-              array-type      ;; (xyz * *) -> xyz
-              (list array-type element-type)))) ;; (xyz el-type *) -> (xyz el-type)
-      (list array-type element-type dimensions))))
+  (let* ((t1           (first type))
+         (element-type (or (simplify-type (second type)) '*))
+         (dimensions   (or (third  type) '*))
+         (simple?      (eq t1 'simple-array))
+         (rank-1?      (or
+                        (eq t1 'vector)
+                        (and (listp dimensions) (= 1 (length dimensions)))))
+         (length       (when rank-1?
+                         (if (consp dimensions)
+                             (first dimensions)
+                             dimensions))))
 
-(defun simplify-type-string (type)
-  (declare (type cons type))
-  (let ((dimensions (or (second type) '*)))
-    (if (eq '* dimensions)
-        (first type) ;; (xyz *) -> xyz
-        type)))
+    #-(and) ;; unnecessary, and crashes on (array <t>)
+    (unless (eq '* element-type)
+      (setf element-type (upgraded-array-element-type element-type)))
+    
+    (remove-stars
+     (block nil
+       (if simple?
+           (if rank-1?
+               (case element-type
+                 ((t)        (return `(simple-vector ,length)))
+                 (character  (return `(simple-char-string ,length)))
+                 (base-char  (return `(simple-base-string ,length)))
+                 (bit        (return `(simple-bit-vector ,length)))
+                 (otherwise  (return `(simple-array-1 ,element-type ,length))))
+               (case element-type
+                 ((t)        (return `(simple-t-array ,dimensions)))))
+
+           (if rank-1?
+               (case element-type
+                 (character  (return `(char-string ,length)))
+                 (base-char  (return `(base-string ,length)))
+                 (bit        (return `(bit-vector  ,length)))
+                 (otherwise  (return `(vector ,element-type ,length))))))
+       
+       `(,(if simple? 'simple-array 'array) ,element-type ,dimensions)))))
+
 
 (defun simplify-type (type)
   (declare (type (or symbol cons) type))

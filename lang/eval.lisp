@@ -21,10 +21,10 @@ EVAL and EVAL!
 
 (in-package :cl-parametric-types.lang)
 
-(defun eval (form &optional env)
+(defun eval-in-env (form &optional env)
   "evaluate FORM with optional environment ENV."
   (unless env
-    (return-from eval (cl:eval (macroexpand form))))
+    (return-from eval-in-env (eval (macroexpand form))))
   #+clisp (ext:eval-env form env)
   #+cmucl (eval:internal-eval form t env)
   #+sbcl  (sb-eval:eval-in-environment form env)
@@ -33,4 +33,4 @@ EVAL and EVAL!
 
 (defmacro eval! (form &environment env)
   "evaluate FORM at compile time."
-  (eval form env))
+  (eval-in-env form env))

@@ -64,14 +64,14 @@ TREE-FIND and MULTI-SUBST
 		;; eval
 		(check-type (cddr items) null)
 		(let ((items (%multi-subst (second items))))
-		  ;; only return the first value of EVAL
-		  (values (eval items env))))
+		  ;; only return the first value of EVAL-IN-ENV
+		  (values (eval-in-env items env))))
 	       ((and eval-splice-symbol (eql eval-splice-symbol (car items)))
 		;; eval-splice
 		(check-type (cddr items) null)
 		(let ((items (%multi-subst (second items))))
-		  ;; return the result of EVAL (which must be a list) as multiple values
-		  (values-list (eval items env))))
+		  ;; return the result of EVAL-IN-ENV (which must be a list) as multiple values
+		  (values-list (eval-in-env items env))))
 	       (t
 		(let* ((head (cons nil nil))
 		       (tail head))

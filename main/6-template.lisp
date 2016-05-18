@@ -24,7 +24,10 @@ Public API: TEMPLATE macro and friends
     ((&rest template-args)
 	(&key declaims specialized-for)
 	   (defun name lambda-list &body body))
-  
+
+  (when specialized-for
+    (setf specialized-for (normalize-typexpand-list specialized-for)))
+
   (let* ((template-types (lambda-list->args template-args))
 	 (function-args  (lambda-list->args lambda-list)))
     `(progn
@@ -46,6 +49,9 @@ Public API: TEMPLATE macro and friends
     ((&rest template-args)
 	(&key declaims specialized-for)
 	(defstruct name-and-options &rest slot-descriptions))
+
+  (when specialized-for
+    (setf specialized-for (normalize-typexpand-list specialized-for)))
 
   (let* ((template-types   (lambda-list->args template-args))
 	 (name-and-options (parse-struct-name-and-options  name-and-options))
@@ -104,6 +110,9 @@ Public API: TEMPLATE macro and friends
 	(defclass name direct-superclasses slot-descriptions
 	  &rest options))
 
+  (when specialized-for
+    (setf specialized-for (normalize-typexpand-list specialized-for)))
+  
   (let ((template-types (lambda-list->args template-args)))
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)

@@ -57,34 +57,57 @@ Functions to normalize types, i.e. to replace:
         (hi (or (third  type) '*)))
     `(,first ,lo ,hi)))
 
+(defun normalize-type-string (type)
+  (declare (type cons type))
+  (let ((t1 (first type))
+        (t2 (or (second type) '*)))
+    (ecase t1
+      (simple-vector               `(simple-array t   (,t2)))
+      (bit-vector                  `(array        bit (,t2)))
+      (simple-bit-vector           `(simple-array bit (,t2)))
+      ((string simple-string)      `(,t1               ,t2))
+      (base-string                 `(array        base-char (,t2)))
+      (simple-base-string          `(simple-array base-char (,t2))))))
+
 (defun normalize-type-array (type)
   (declare (type cons type))
-  (let ((array-type   (first type))
-        (element-type (or (normalize-type (second type)) '*))
-        (dimensions   (or (third type) '*)))
-    (list array-type element-type dimensions)))
+  (let ((t1 (first type))
+        (t2 (or (second type) '*))
+        (t3 (or (third type) '*)))
+
+    #-(and) ;; unnecessary, and crashes on (array <t>)
+    (unless (eq '* t2)
+      (set t2 (upgraded-array-element-type t2)))
+
+    (ecase t1
+      ((array simple-array)        `(,t1          ,t2  ,t3))
+      (vector                      `(array        ,t2 (,t3))))))
 
 (defun normalize-type (type)
   (declare (type (or symbol cons) type))
   (etypecase type
     (symbol
      (case type
-       (bit                         '(integer 0 1))
-       (fixnum                      '(integer #.most-negative-fixnum #.most-positive-fixnum))
-       (unsigned-byte               '(integer 0 *))
-       ((signed-byte  integer)      '(integer * *))
-       ((single-float double-float) `(type * *))
-       ((string simple-string simple-base-string vector simple-vector bit-vector simple-bit-vector)
-        `(,type *))
-       ((array simple-array) `(,type * *))
-       (boolean                     '(member t nil))
+       (bit                           '(integer 0 1))
+       (fixnum                        '(integer #.most-negative-fixnum #.most-positive-fixnum))
+       (unsigned-byte                 '(integer 0 *))
+       ((signed-byte  integer)        '(integer * *))
+       ((single-float double-float)   `(,type * *))
+       ((array simple-array vector)   (normalize-type-array `(,type)))
+       ((string simple-string base-string simple-base-string
+                simple-vector bit-vector simple-bit-vector)
+        #||#                          (normalize-type-string `(,type)))
+       (boolean                       '(member t nil))
        (otherwise     type)))
     (cons
      (case (first type)
        (signed-byte   (normalize-type-signed-byte   type))
        (unsigned-byte (normalize-type-unsigned-byte type))
        ((integer single-float double-float)        (normalize-type-real type))
-       ((array        simple-array  vector)        (normalize-type-array type))
+       ((array simple-array vector)                (normalize-type-array type))
+       ((string simple-string base-string simple-base-string
+                simple-vector bit-vector simple-bit-vector)
+        (normalize-type-string type))
        (member        type)
        (otherwise     (cons (first type)
                             (loop :for e :in (rest type)

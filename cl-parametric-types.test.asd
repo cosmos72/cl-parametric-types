@@ -22,9 +22,10 @@
   :pathname "test/"
   :components
   ((:file "package")
-   (:file "compare"    :depends-on ("package"))
-   (:file "pair"       :depends-on ("package"))
-   (:file "triple"     :depends-on ("pair"))))
+   (:file "types"     :depends-on ("package"))
+   (:file "compare"   :depends-on ("package"))
+   (:file "pair"      :depends-on ("package"))
+   (:file "triple"    :depends-on ("pair"))))
 
 
 (defmethod asdf:perform :after ((operation asdf:load-op)

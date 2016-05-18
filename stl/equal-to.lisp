@@ -53,12 +53,13 @@
 		    
 
 (template ()
-  (:specialized-for ((simple-array character (*))))
+  (:specialized-for (simple-char-string))
   (declaim (inline equal-to))
   (defun equal-to (a b)
-    (declare (type (simple-array character (*)) a b))
+    (declare (type simple-char-string a b))
     (string= a b)))
-		    
+
+
 (template ()
   (:specialized-for (simple-base-string))
   (declaim (inline equal-to))
