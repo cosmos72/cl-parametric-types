@@ -3,7 +3,7 @@ Template-function HASH
 
 Syntax:
 -------
-(hash (<t>) object) => hash-code
+`(hash (<t>) object) => hash-code`
 
 Arguments and values:
 --------------------
@@ -16,7 +16,7 @@ HASH returns the [hash code](http://en.wikipedia.com/wiki/Hash_function) of an o
 Commonly used together with [EQUAL-TO](equal-to.md)
 to implement [hash associative containers](hash-set-or-map.md)
 
-Unlike CL:SXHASH, values returned by HASH on *different* Lisp images
+Unlike CL:SXHASH, values returned by HASH on different Lisp images
 for the same objects *can* be different - HASH is only guaranteed
 to produce consistent values within a *single* Lisp image;
 this allows salted hashes that prevent collision DoS attacks.
@@ -26,7 +26,7 @@ and provides the following guarantees:
 
 1. consistency between HASH and EQUAL-TO: equal objects have equal hash code.
 
-   Formally: given a type <T> and two objects A, B of type <T> or some subtype,
+   Formally: given a type `<T>` and two objects A, B of type <T> or some subtype,
    `(EQUAL-TO <T> A B)` implies `(= (HASH <T> A) (HASH <T> B))`
 
 2. invariability: The hash-code for an object is always the same within a single
@@ -36,7 +36,7 @@ and provides the following guarantees:
 3. discrimination: with very high probability, different objects
    have different hash codes.
   
-   Formally: given a type <T> and two objects A, B of type <T> or some subtype,
+   Formally: given a type `<T>` and two objects A, B of type <T> or some subtype,
    `(NOT (EQUAL-TO <T> A B))` implies that, with a probability approaching
    1/(1+ MOST-POSITIVE-FIXNUM), `(/= (HASH <T> A) (HASH <T> B))`
    
