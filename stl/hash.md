@@ -7,7 +7,10 @@ Syntax:
 
 Arguments and values:
 --------------------
-object:    an object
+`<t>`      a type
+
+object:    an object of type `<t>` or some subtype
+
 hash-code: a non-negative fixnum
 
 Description:
