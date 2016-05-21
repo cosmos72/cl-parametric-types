@@ -111,6 +111,7 @@ cannot instantiate ~S"
 as caches for concrete name of types/functions currently being instantiated,
 in order to break infinite recursions."
   (declare (type list actual-types))
+
   (log.trace "~&; attempt to use ~a ~s~&" (kind-name kind) (cons name actual-types))
   (let ((concrete (instantiating kind name actual-types)))
     (when concrete
@@ -125,13 +126,13 @@ in order to break infinite recursions."
        (let ((*instantiating-types* (acons-instantiating name actual-types concrete
                                                          *instantiating-types*)))
          ;;(break "*instantiating-types* ~S" *instantiating-types*)
-         (call-next-method)))
+         (call-next-method kind name actual-types)))
       (template-function
        (let ((*instantiating-functions* (acons-instantiating name actual-types concrete
                                                              *instantiating-functions*)))
-         (call-next-method)))
+         (call-next-method kind name actual-types)))
       (otherwise
-       (call-next-method)))))
+       (call-next-method kind name actual-types)))))
           
 
 (defmethod instantiate (kind name actual-types)

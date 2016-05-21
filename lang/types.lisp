@@ -20,6 +20,8 @@ aliases for common types
 
 (in-package :cl-parametric-types.lang)
 
+(deftype ufixnum () '(integer 0 #.most-positive-fixnum))
+
 (deftype simple-t-array (&optional (dimensions '*))
   "simple-array of T"
   `(simple-array t ,dimensions))
@@ -42,6 +44,6 @@ aliases for common types
 
 #-(and)
 (deftype simple-base-string (&optional (size '*))
-  "one-dimensional simple-array of BASE-CHAR. Equivalent to CL:SIMPLE-BASE-STRING"
-  `(svector base-char ,size))
+  "one-dimensional simple-array of BASE-CHAR. Identical to CL:SIMPLE-BASE-STRING"
+  `(simple-array-1 base-char ,size))
 

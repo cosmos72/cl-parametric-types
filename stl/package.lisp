@@ -17,7 +17,9 @@
 (defpackage #:cl-parametric-types.stl
   (:nicknames #:cpt.stl #:c+t.stl #:c+stl)
 
-  (:use #:cl #:cl-parametric-types)
+  (:use #:cl
+	#:cl-parametric-types.lang
+	#:cl-parametric-types)
 
   (:shadowing-import-from #:cl-parametric-types
                           #:defstruct)

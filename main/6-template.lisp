@@ -25,11 +25,14 @@ Public API: TEMPLATE macro and friends
 	(&key declaims specialized-for)
 	   (defun name lambda-list &body body))
 
-  (when specialized-for
-    (setf specialized-for (normalize-typexpand-list specialized-for)))
-
   (let* ((template-types (lambda-list->args template-args))
 	 (function-args  (lambda-list->args lambda-list)))
+
+    (when specialized-for
+      ;; normalize specialization types,
+      ;; but typexpand them only if they do NOT depend on template-args
+      (setf specialized-for (normalize-typexpand-list specialized-for template-types)))
+
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-function ',name ',specialized-for)
@@ -50,8 +53,6 @@ Public API: TEMPLATE macro and friends
 	(&key declaims specialized-for)
 	(defstruct name-and-options &rest slot-descriptions))
 
-  (when specialized-for
-    (setf specialized-for (normalize-typexpand-list specialized-for)))
 
   (let* ((template-types   (lambda-list->args template-args))
 	 (name-and-options (parse-struct-name-and-options  name-and-options))
@@ -66,14 +67,21 @@ Public API: TEMPLATE macro and friends
 	 (nontemplate-superclass-name (if template-superclass-name? nil superclass-name))
 	 (template-slot-names    (when specialized-for (mapcar #'first-atom slot-descriptions)))
 	 (nontemplate-slot-names nil))
+
+    (when specialized-for
+      ;; normalize specialization types,
+      ;; but typexpand them only if they do NOT depend on template-args
+      (setf specialized-for (normalize-typexpand-list specialized-for template-types)))
+
     (unless specialized-for
       (dolist (slot-description slot-descriptions)
-	(let ((slot-name (first-atom slot-description)))
+	(let ((slot-name (the symbol (first-atom slot-description))))
 	  (if (member slot-name template-types)
 	      (push slot-name template-slot-names)
 	      (push slot-name nontemplate-slot-names))))
       (setf template-slot-names (nreverse template-slot-names)
 	    nontemplate-slot-names (nreverse nontemplate-slot-names)))
+
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-type ',name ',specialized-for)
@@ -110,10 +118,13 @@ Public API: TEMPLATE macro and friends
 	(defclass name direct-superclasses slot-descriptions
 	  &rest options))
 
-  (when specialized-for
-    (setf specialized-for (normalize-typexpand-list specialized-for)))
-  
   (let ((template-types (lambda-list->args template-args)))
+
+    (when specialized-for
+      ;; normalize specialization types,
+      ;; but typexpand them only if they do NOT depend on template-args
+      (setf specialized-for (normalize-typexpand-list specialized-for template-types)))
+  
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-type ',name ',specialized-for)
@@ -133,6 +144,12 @@ Public API: TEMPLATE macro and friends
 	(deftype name lambda-list &body body))
   
   (let ((template-types (lambda-list->args template-args)))
+
+    (when specialized-for
+      ;; normalize specialization types,
+      ;; but typexpand them only if they do NOT depend on template-args
+      (setf specialized-for (normalize-typexpand-list specialized-for template-types)))
+
     `(progn
        (eval-when (:compile-toplevel :load-toplevel :execute)
 	 (setf (get-definition 'template-type ',name ',specialized-for)

@@ -59,6 +59,13 @@
 	       (pair-second (<t1> <t2>) b))))))
 
 
+  (declaim (notinline hash))
+  (defun hash (a)
+    (declare (type (pair <t1> <t2>) a))
+    (combine-hashes (sxhash '(pair <t1> <t2>))
+		    (hash (<t1>) (pair-first  (<t1> <t2>) a))
+		    (hash (<t1>) (pair-second (<t1> <t2>) a))))
+
   (declaim (notinline equal-to))
   (defun equal-to (a b)
     (declare (type (pair <t1> <t2>) a b))

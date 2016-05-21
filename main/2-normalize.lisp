@@ -85,35 +85,49 @@ Functions to normalize types, i.e. to replace:
 
 (defun normalize-type (type)
   (declare (type (or symbol cons) type))
-  (etypecase type
-    (symbol
-     (case type
-       (bit                           '(integer 0 1))
-       (fixnum                        '(integer #.most-negative-fixnum #.most-positive-fixnum))
-       (unsigned-byte                 '(integer 0 *))
-       ((signed-byte  integer)        '(integer * *))
-       ((single-float double-float)   `(,type * *))
-       ((array simple-array vector)   (normalize-type-array `(,type)))
-       ((string simple-string base-string simple-base-string
-                simple-vector bit-vector simple-bit-vector)
-        #||#                          (normalize-type-string `(,type)))
-       (boolean                       '(member t nil))
-       (otherwise     type)))
-    (cons
-     (case (first type)
-       (signed-byte   (normalize-type-signed-byte   type))
-       (unsigned-byte (normalize-type-unsigned-byte type))
-       ((integer single-float double-float)        (normalize-type-real type))
-       ((array simple-array vector)                (normalize-type-array type))
-       ((string simple-string base-string simple-base-string
-                simple-vector bit-vector simple-bit-vector)
-        (normalize-type-string type))
-       (member        type)
-       (otherwise     (cons (first type)
-                            (loop :for e :in (rest type)
-                               :collect (normalize-type e))))))))
+  (log.trace "~&; normalizing ~S ...~&" type)
+  (let ((normalized-type
+    (etypecase type
+      (symbol
+       (case type
+	 (bit                           '(integer 0 1))
+	 (fixnum                        '(integer #.most-negative-fixnum #.most-positive-fixnum))
+	 (unsigned-byte                 '(integer 0 *))
+	 ((signed-byte  integer)        '(integer * *))
+	 ((single-float double-float)   `(,type * *))
+	 ((array simple-array vector)   (normalize-type-array `(,type)))
+	 ((string simple-string base-string simple-base-string
+		  simple-vector bit-vector simple-bit-vector)
+	  #||#                          (normalize-type-string `(,type)))
+	 (boolean                       '(member t nil))
+	 (otherwise     type)))
+      (cons
+       (case (first type)
+	 (signed-byte   (normalize-type-signed-byte   type))
+	 (unsigned-byte (normalize-type-unsigned-byte type))
+	 ((integer single-float double-float)        (normalize-type-real type))
+	 ((array simple-array vector)                (normalize-type-array type))
+	 ((string simple-string base-string simple-base-string
+		  simple-vector bit-vector simple-bit-vector)
+	  (normalize-type-string type))
+	 (member        type)
+	 (otherwise     (cons (first type)
+			      (loop :for e :in (rest type)
+				 :collect (normalize-type e)))))))))
+    (log.trace "~&; normalized  ~S to ~S~&" type normalized-type)
+    normalized-type))
 
-(defun normalize-typexpand-list (types)
+(defun normalize-typexpand-list (types template-types)
+  "Call (NORMALIZE-TYPE (TYPEXPAND TYPE)) on each member
+of TYPES list, and collect a list of the returned values.
+
+Special case: if TYPE is a tree containing one or more of
+TEMPLATE-TYPES, then only call (NORMALIZE-TYPE TYPE) on it"
   (declare (type list types))
-   (loop :for type :in types
-      :collect (normalize-type (typexpand type))))
+  (loop :for type :in types
+     :collect (normalize-type
+	       (if (some (lambda (template-type)
+			   (tree-find type template-type))
+			 template-types)
+		   type
+		   (typexpand type)))))

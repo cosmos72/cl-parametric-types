@@ -69,6 +69,10 @@ matching some given actual types.
 
 (defmethod get-specialized-definition (kind name specialized-for)
   (declare (type list specialized-for))
+
+  (log.trace "~&; searching best specialization for ~A ~S"
+	     (kind-name kind) (cons name specialized-for))
+	
   (let ((all-defs (get-all-definitions kind name))
 	(best-defs nil))
     (flet ((%compare-specialized-definition (vars pattern)

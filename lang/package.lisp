@@ -27,7 +27,6 @@
 
            #:first-atom #:recurse-first-atom #:lambda-list->args
 
-           #:simple-t-array
-           #:simple-array-1 #:simple-t-array-1
+	   #:ufixnum #:simple-t-array #:simple-array-1 #:simple-t-array-1
            #:char-string #:simple-char-string))
 

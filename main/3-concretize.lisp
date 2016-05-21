@@ -14,14 +14,15 @@
 
 #|
 
-This file does XXX.
-
+Convert abstract type names, as for example (PAIR BIT FIXNUM)
+into concrete type names, as for example <PAIT.BIT.FIXNUM>
 
 |#
 
 
 (in-package #:cl-parametric-types)
 
+(defvar *concretize* t)
 
 (defun mangled-simple-type-name? (name)
   (declare (type string name))
@@ -153,6 +154,12 @@ This file does XXX.
 
 (defmethod concretize (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
+
+  (unless *concretize*
+    (when simplify
+      (setf actual-types (simplify-typexpand-list actual-types)))
+    (return-from concretize (cons name actual-types)))
+  
   (multiple-value-bind (mangled-name actual-types*)
       (mangle kind name actual-types :simplify simplify)
     (let* ((symbol
@@ -172,7 +179,10 @@ This file does XXX.
         (error "CL-PARAMETRIC-TYPES: symbol ~S is uninterned, i.e. has no home package.
  I have no idea in which package I should instantiate ~S into!"
                symbol (cons name actual-types)))
-      (values
-       (intern mangled-name package)
-       actual-types*))))
+      (let ((mangled-symbol (intern mangled-name package)))
+	(log.trace "~&; concretized ~A name ~S to ~S~&"
+		   (kind-name kind) (cons name actual-types) mangled-symbol)
+	(values
+	 mangled-symbol
+	 actual-types*)))))
 

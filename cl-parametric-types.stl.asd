@@ -23,8 +23,9 @@
   :components
   ((:file "package")
    (:file "less"        :depends-on ("package"))
+   (:file "hash"        :depends-on ("package"))
    (:file "equal-to"    :depends-on ("package"))
-   (:file "pair"        :depends-on ("less" "equal-to"))
+   (:file "pair"        :depends-on ("less" "hash" "equal-to"))
    (:file "triple"      :depends-on ("pair"))
    (:file "collection"  :depends-on ("package"))
    (:file "binary-node" :depends-on ("pair"))
