@@ -273,6 +273,12 @@ In other words, the function `LESS` specialized for `(PAIR <T1> <T2>)`
 will *not* be considered when trying to instantiate, compile and invoke
 `(LESS (TRIPLE <T1> <T2> <T3>) ...)` even if `TRIPLE` is a subclass of `PAIR`.
 
+Predefined template functions and types
+---------------------------------------
+
+The package CL-PARAMETRIC-TYPES.STL aims at reimplementing
+most of C++ STL functions and types, translating them to idiomatic Common Lisp.
+See [stl/README.md](stl/README.md) for details.
 
 Appendix: design philosophy
 ---------------------------

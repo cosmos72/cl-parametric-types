@@ -25,13 +25,13 @@
   The code below is equivalent to C++:
 
   template<class T1, class T2>
-      less<pair<T1,T2> >(const pair<T1,T2> & a, const pair<T1,T2> & b)
+      less<pair<T1,T2> >(const pair<T1,T2> & x, const pair<T1,T2> & y)
   {
-     T1 a1 = a.first, b1 = b.first;
-     if (a1 < b1)
+     T1 x1 = x.first, y1 = y.first;
+     if (x1 < y1)
          return true;
-     if (a1 == b1)
-         return a.second < b.second;
+     if (x1 == y1)
+         return x.second < y.second;
      return false;
   }
 |#
@@ -40,39 +40,40 @@
   (:specialized-for ((pair <t1> <t2>)))
 
   (declaim (notinline less))
-  (defun less (a b)
-    (declare (type (pair <t1> <t2>) a b))
+  (defun less (x y)
+    (declare (type (pair <t1> <t2>) x y))
     ;; struct accessors want the FULL list of template arguments, in this case (<t1> <t2>)
     ;; even if in practice the accessor type alone could suffice...
     ;;
     ;; i.e. one must write (pair-first (<t1> <t2>) ...)
     ;; because PAIR is defined as (pair <t1> <t2>),
     ;; even though PAIR-FIRST actually only uses <t1>, not <t2>
-    (let ((a1 (pair-first (<t1> <t2>) a))
-          (b1 (pair-first (<t1> <t2>) b)))
+    (let ((x1 (pair-first (<t1> <t2>) x))
+          (y1 (pair-first (<t1> <t2>) y)))
       (cond
-        ((less (<t1>) a1 b1) t)
-        ((less (<t1>) b1 a1) nil)
+        ((less (<t1>) x1 y1) t)
+        ((less (<t1>) y1 x1) nil)
         (t
          (less (<t2>)
-	       (pair-second (<t1> <t2>) a)
-	       (pair-second (<t1> <t2>) b))))))
+	       (pair-second (<t1> <t2>) x)
+	       (pair-second (<t1> <t2>) y))))))
 
 
   (declaim (notinline hash))
-  (defun hash (a)
-    (declare (type (pair <t1> <t2>) a))
+  (defun hash (x)
+    (declare (type (pair <t1> <t2>) x))
     (combine-hashes (sxhash '(pair <t1> <t2>))
-		    (hash (<t1>) (pair-first  (<t1> <t2>) a))
-		    (hash (<t1>) (pair-second (<t1> <t2>) a))))
+		    (hash (<t1>) (pair-first  (<t1> <t2>) x))
+		    (hash (<t2>) (pair-second (<t1> <t2>) x))))
+
 
   (declaim (notinline equal-to))
-  (defun equal-to (a b)
-    (declare (type (pair <t1> <t2>) a b))
+  (defun equal-to (x y)
+    (declare (type (pair <t1> <t2>) x y))
     (and
      (equal-to (<t1>)
-               (pair-first (<t1> <t2>) a)
-               (pair-first (<t1> <t2>) b))
+               (pair-first (<t1> <t2>) x)
+               (pair-first (<t1> <t2>) y))
      (equal-to (<t2>)
-	       (pair-second (<t1> <t2>) a)
-	       (pair-second (<t1> <t2>) b)))))
+	       (pair-second (<t1> <t2>) x)
+	       (pair-second (<t1> <t2>) y)))))

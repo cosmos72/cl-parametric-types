@@ -7,11 +7,9 @@ Syntax:
 
 Arguments and values:
 --------------------
-`<t>`      a type
-
-object:    an object of type `<t>` or some subtype
-
-hash-code: a non-negative fixnum
+`<t>`      a type  
+object:    an object of type `<t>` or some subtype  
+hash-code: a non-negative fixnum  
 
 Description:
 ------------
@@ -29,7 +27,7 @@ and provides the following guarantees:
 
 1. consistency between HASH and EQUAL-TO: equal objects have equal hash code.
 
-   Formally: given a type `<T>` and two objects A, B of type <T> or some subtype,
+   Formally: given a type `<T>` and two objects A, B of type `<T>` or some subtype,
    `(EQUAL-TO <T> A B)` implies `(= (HASH <T> A) (HASH <T> B))`
 
 2. invariability: The hash-code for an object is always the same within a single
@@ -39,7 +37,7 @@ and provides the following guarantees:
 3. discrimination: with very high probability, different objects
    have different hash codes.
   
-   Formally: given a type `<T>` and two objects A, B of type <T> or some subtype,
+   Formally: given a type `<T>` and two objects A, B of type `<T>` or some subtype,
    `(NOT (EQUAL-TO <T> A B))` implies that, with a probability approaching
    1/(1+ MOST-POSITIVE-FIXNUM), `(/= (HASH <T> A) (HASH <T> B))`
    
@@ -61,13 +59,18 @@ In order to maintain the consistency between HASH and EQUAL-TO, if you define
 a partial template specialization for the template-function [EQUAL-TO](equal-to.md),
 you *should* also define the corresponding specializazion for HASH.
 
+The type `<T>` *can* be part of the hash code computation, i.e. if an object A is both
+of type `<T1>` and `<T2>`, an implementation is allowed to produce different results
+for `(HASH <T1> A)` and `(HASH <T2> A)`.
+
 Side effects:
 -------------
 none
 
 Exceptional situations:
 -----------------------
-none
+An implementation can, but is not required to, signal a TYPE-ERROR if the object
+passed to `(HASH (<T>) ...)` is not of type `<T>`.
 
 Specializations:
 ----------------
