@@ -20,7 +20,6 @@
     (second nil :type <t2>)))
 
 
-
 #|
   The code below is equivalent to C++:
 
@@ -36,6 +35,7 @@
   }
 |#
 
+
 (template (&optional (<t1> t) (<t2> t))
   (:specialized-for ((pair <t1> <t2>)))
 
@@ -45,9 +45,9 @@
     ;; struct accessors want the FULL list of template arguments, in this case (<t1> <t2>)
     ;; even if in practice the accessor type alone could suffice...
     ;;
-    ;; i.e. one must write (pair-first (<t1> <t2>) ...)
-    ;; because PAIR is defined as (pair <t1> <t2>),
-    ;; even though PAIR-FIRST actually only uses <t1>, not <t2>
+    ;; i.e. one must write (PAIR-FIRST (<T1> <T2>) ...)
+    ;; because PAIR is defined as (PAIR <T1> <T2>),
+    ;; even though PAIR-FIRST actually only uses <T1>, not <T2>
     (let ((x1 (pair-first (<t1> <t2>) x))
           (y1 (pair-first (<t1> <t2>) y)))
       (cond

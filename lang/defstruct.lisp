@@ -48,7 +48,6 @@ DEFSTRUCT
     (when (consp include)
       (second include))))
 
-
 (defmacro defstruct (name-and-options &rest slot-descriptions)
   "Extended version of CL:DEFSTRUCT. It supports all standard options,
 plus it also supports derived types as superclasses,

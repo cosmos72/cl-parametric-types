@@ -28,7 +28,7 @@
      #:struct-name-and-options->include
      #:struct-name-and-options->superclass-name)
 
-  (:export #:defstruct #:alias #:template #:define-template #:typexpand
+  (:Export #:defstruct #:alias #:template #:define-template #:typexpand
 
            ;; types from cl-parametric-types.lang
            #:simple-t-array #:simple-array-1 #:simple-t-array-1

@@ -49,7 +49,7 @@ This file does XXX.
   "define accessor macros for specified slots of template-struct"
   (declare (type symbol name)
 	   (type list template-args slot-names))
-  (let ((template-types (lambda-list->args template-args)))
+  (let ((template-types (lambda-list->params template-args)))
     (loop :for slot-name :in slot-names
        :collect
        (define-struct-accessor name template-args template-types slot-name))))
@@ -73,7 +73,7 @@ This file does XXX.
 ; inherited accessors will *not* be defined.~&" name superclass-name)
 
           (let ((superclass-slots (closer-mop:class-slots (find-class superclass-name)))
-		(template-types (lambda-list->args template-args)))
+		(template-types (lambda-list->params template-args)))
             (loop :for superclass-slot :in superclass-slots
                :for superclass-slot-name = (slot-definition->name superclass-slot)
                :collect (define-struct-accessor name template-args template-types 
@@ -114,22 +114,37 @@ then accessors for superclass slots are NOT defined."
     `(,concrete-function ,@function-args)))
 
 
-(defun define-struct-make&copy (struct-name)
+(defun define-struct-make&copy (struct-name constructor-prefix copier-prefix)
   (declare (type symbol struct-name))
-  (let* ((package *package*)
-         (struct-name-s (symbol-name struct-name))
-         (make-name-s (concatenate 'string (symbol-name 'make) "-" struct-name-s))
-         (make-name (intern make-name-s package))
-         (copy-name-s (concatenate 'string (symbol-name 'copy) "-" struct-name-s))
-         (copy-name (intern copy-name-s package))
-         (template-args (get-definition-template-args 'template-type struct-name nil))
-         (template-types (lambda-list->args template-args))
-         (function-args (gensym (symbol-name 'function-args))))
-    `((defmacro ,make-name ((,@template-args) &rest ,function-args)
-        `(make ((,',struct-name ,,@template-types)) ,@,function-args))
-      (defmacro ,copy-name ((,@template-args) &rest ,function-args)
-        `(copy ((,',struct-name ,,@template-types)) ,@,function-args)))))
+  (flet ((prefix->name (prefix)
+           (when prefix
+             (values
+              (intern (concatenate 'string (symbol-name prefix) "-" (symbol-name struct-name))
+                      *package*)))))
+    (let* ((template-args    (get-definition-template-args 'template-type struct-name nil))
+           (template-types   (lambda-list->args template-args))
+           (function-args    (gensym (symbol-name 'function-args)))
+           (constructor-name (prefix->name constructor-prefix))
+           (copier-name      (prefix->name copier-prefix))
+           (forms))
+      (when constructor-name
+        (push
+         `(defmacro ,constructor-name ((,@template-args) &rest ,function-args)
+            ;; (instantiate 'template-type ',struct-name `(,,@template-types))
+            `(,(concretize 'template-constructor ',constructor-prefix
+                           `((,',struct-name ,,@template-types)))
+               ,@,function-args))
+         forms))
+      (when copier-name
+        (push
+         `(defmacro ,copier-name ((,@template-args) &rest ,function-args)
+            ;; (instantiate 'template-type ',struct-name `(,,@template-types))
+            `(,(concretize 'template-constructor ',copier-prefix
+                           `((,',struct-name ,,@template-types)))
+               ,@,function-args))
+         forms))
+      (nreverse forms))))
 
-(defmacro define-struct-make&copy! (struct-name)
+(defmacro define-struct-make&copy! (struct-name constructor-name copier-name)
   `(progn
-     ,@(define-struct-make&copy struct-name)))
+     ,@(define-struct-make&copy struct-name constructor-name copier-name)))

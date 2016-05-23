@@ -29,4 +29,5 @@
    (:file "triple"      :depends-on ("pair"))
    (:file "collection"  :depends-on ("package"))
    (:file "binary-node" :depends-on ("pair"))
-   (:file "binary-tree" :depends-on ("collection" "binary-node"))))
+   (:file "binary-tree" :depends-on ("collection" "binary-node"))
+   (:file "bivector"    :depends-on ("collection"))))

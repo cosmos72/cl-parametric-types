@@ -23,13 +23,14 @@ EVAL and EVAL!
 
 (defun eval-in-env (form &optional env)
   "evaluate FORM with optional environment ENV."
-  (unless env
-    (return-from eval-in-env (eval (macroexpand form))))
-  #+clisp (ext:eval-env form env)
-  #+cmucl (eval:internal-eval form t env)
-  #+sbcl  (sb-eval:eval-in-environment form env)
-  #-(or clisp cmucl sbcl)
-  (eval (macroexpand form env)))
+  (let ((form `(let ((*compile-verbose* ,*compile-verbose*)) ,form)))
+    (unless env
+      (return-from eval-in-env (eval (macroexpand form))))
+    #+clisp (ext:eval-env form env)
+    #+cmucl (eval:internal-eval form t env)
+    #+sbcl  (sb-eval:eval-in-environment form env)
+    #-(or clisp cmucl sbcl)
+    (eval (macroexpand form env))))
 
 (defmacro eval! (form &environment env)
   "evaluate FORM at compile time."

@@ -25,8 +25,8 @@ Public API: TEMPLATE macro and friends
 	(&key declaims specialized-for)
 	   (defun name lambda-list &body body))
 
-  (let* ((template-types (lambda-list->args template-args))
-	 (function-args  (lambda-list->args lambda-list)))
+  (let* ((template-types  (lambda-list->params template-args))
+	 (function-args   (lambda-list->args   lambda-list)))
 
     (when specialized-for
       ;; normalize specialization types,
@@ -54,8 +54,8 @@ Public API: TEMPLATE macro and friends
 	(defstruct name-and-options &rest slot-descriptions))
 
 
-  (let* ((template-types   (lambda-list->args template-args))
-	 (name-and-options (parse-struct-name-and-options  name-and-options))
+  (let* ((template-types   (lambda-list->params template-args))
+	 (name-and-options (parse-struct-name-and-options name-and-options))
 	 (name!-and-options (if (consp name-and-options)
 				(cons 'name! (rest name-and-options))
 				'name!))
@@ -98,9 +98,9 @@ Public API: TEMPLATE macro and friends
 			     ,template-slot-names)
 			   ',name)))))
        ,@(if specialized-for
-	     `',name
-	     `((define-struct-make&copy! ,name)
-	       (define-struct-accessors! ,name nil
+            `(',name)
+            `((define-struct-make&copy! ,name make copy)
+              (define-struct-accessors! ,name nil
 		   ;; if superclass is a template that depends on TEMPLATE-TYPES,
 		   ;; we will know superclass slots only after instantiating
 		   ;; the struct itself...
@@ -118,7 +118,7 @@ Public API: TEMPLATE macro and friends
 	(defclass name direct-superclasses slot-descriptions
 	  &rest options))
 
-  (let ((template-types (lambda-list->args template-args)))
+  (let ((template-types (lambda-list->params template-args)))
 
     (when specialized-for
       ;; normalize specialization types,
@@ -133,9 +133,11 @@ Public API: TEMPLATE macro and friends
 		 (,defclass name! ,direct-superclasses
 		   ,slot-descriptions
 		   ,@options))))
-       ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
-       (deftype ,name ,template-args
-	 (instantiate 'template-type ',name `(,,@template-types))))))
+       ,(if specialized-for
+	    `',name
+	    ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
+            `(deftype ,name ,template-args
+               (instantiate 'template-type ',name `(,,@template-types)))))))
 
 
 (defmacro define-template-type
@@ -143,7 +145,7 @@ Public API: TEMPLATE macro and friends
 	(&key declaims specialized-for)
 	(deftype name lambda-list &body body))
   
-  (let ((template-types (lambda-list->args template-args)))
+  (let ((template-types (lambda-list->params template-args)))
 
     (when specialized-for
       ;; normalize specialization types,

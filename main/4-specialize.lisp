@@ -97,7 +97,7 @@ Otherwise return 0"
       ;; loop on all specializations and find the most specific one
       (dolist (pair all-defs)
 	(let* ((def         (cdr pair))
-	       (def-vars    (lambda-list->args (second def)))
+	       (def-vars    (lambda-list->params (second def)))
 	       ;; non-specialized template definition has NULL def-pattern:
 	       ;; it matches everything, as long as the number of template arguments is the same
 	       (def-pattern (or (car pair) def-vars)))
@@ -134,7 +134,7 @@ all the following patterns are \"equally\" specific:~S"
 	(dolist (def all-defs)
 	  ;; non-specialized template definition has NULL def-pattern:
 	  ;; we must compute it from def-lambda-list
-	  (let* ((def-specialized-for (or (car def) (lambda-list->args (caddr def))))
+	  (let* ((def-specialized-for (or (car def) (lambda-list->params (caddr def))))
 		 (n2 (length def-specialized-for)))
 	    (unless (= n1 n2)
 	      (error "CL-PARAMETRIC-TYPES: the number of template arguments does not match!

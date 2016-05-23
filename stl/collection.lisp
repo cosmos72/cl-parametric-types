@@ -47,8 +47,25 @@ Otherwise return END^"
 
   (defun end^ (collection)
     "Return an iterator pointing to \"one past last element\" of COLLECTION.
-Some specializations may return NIL."
+Some specializations may return NIL.
+Note: to compare iterators, use (EQUAL-TO ((ITERATOR <T>)) ...) or,
+to compare an iterator against the END^ iterator, use VALID-ITER? or END-ITER?"
     (error! "No specialization of ~s for (~s)" 'end^ '<t>))
+
+  (defun valid-iter? (iterator)
+    "Return non-nil if ITERATOR is valid, i.e. different from END^ iterator.
+Note: the template argument <T> is the collection type, not the iterator type."
+    (error! "No specialization of ~s for (~s)" 'valid? '<t>))
+
+  (declaim (inline end-iter?))
+  (defun end-iter? (iterator)
+    "Return non-nil if ITERATOR is invalid, i.e. equal to END^ iterator.
+Note: the template argument <T> is the collection type, not the iterator type.
+The default implementation calls (NOT (VALID-ITER? (<T>) ITERATOR))"
+    (declare (type (iterator <t>) iterator))
+    (not (valid-iter? (<t>) iterator)))
+
+    
   
   (declaim (inline front^))
   (defun front^ (collection)
@@ -68,11 +85,11 @@ Otherwise return (values DEFAULT-KEY DEFAULT-VALUE NIL)
 The default implementation calls FRONT^"
     (declare (type <t> collection))
     (let ((iter (front^ <t> collection)))
-      (if (eq iter (end^ <t> collection))
-          (values default-key default-value nil)
-          (values (iter-first  (iterator <t>) iter)
-                  (iter-second (iterator <t>) iter)
-                  t))))
+      (if (valid-iter? (<t>) iter)
+          (values (iter-first  (<t>) iter)
+                  (iter-second (<t>) iter)
+                  t)
+          (values default-key default-value nil))))
 
   (declaim (inline back))
   (defun back (collection &optional default-key default-value)
@@ -82,11 +99,11 @@ Otherwise return (values DEFAULT-KEY DEFAULT-VALUE NIL)
 The default implementation calls BACK^"
     (declare (type <t> collection))
     (let ((iter (back^ <t> collection)))
-      (if (eq iter (end^ <t> collection))
-          (values default-key default-value nil)
-          (values (iter-first  (iterator <t>) iter)
-                  (iter-second (iterator <t>) iter)
-                  t))))
+      (if (valid-iter? (<t>) iter)
+          (values (iter-first  (<t>) iter)
+                  (iter-second (<t>) iter)
+                  t)
+          (values default-key default-value nil))))
 
 
 
@@ -105,9 +122,9 @@ otherwise return (values DEFAULT NIL).
 The default implementation calls FIND^"
     (declare (type <t> collection))
     (let ((iter (find^ <t> collection key)))
-      (if (eq iter (end^ <t> collection))
-	  (values default nil)
-	  (values (iter-second (iterator <t>) iter) t))))
+      (if (valid-iter? (<t>) iter)
+	  (values (iter-second (<t>) iter) t)
+	  (values default nil))))
 
 
 
@@ -130,11 +147,11 @@ Otherwise insert KEY and VALUE, and return (values ITERATOR T).
 In both cases, ITERATOR is the iterator pointing to KEY.
 The default implementation calls FIND^ and INSERT^"
     (declare (type <t> set-or-map))
-    (let ((iter (find^ <t> set-or-map)))
-      (if (eq iter (end^ <t> set-or-map))
-          (insert^ <t> set-or-map key value)
+    (let ((iter (find^ (<t>) set-or-map)))
+      (if (end-iter? (<t>) iter)
+          (insert^ (<t>) set-or-map key value)
           (progn
-            (setf (iter-second (iterator <t>) iter) value)
+            (setf (iter-second (<t>) iter) value)
             (values iter nil)))))
 
   (declaim (inline set-value))
@@ -143,7 +160,7 @@ The default implementation calls FIND^ and INSERT^"
 Return VALUE.
 The default implementation calls PUT^"
     (declare (type <t> collection))
-    (put^ <t> collection key value)
+    (put^ (<t>) collection key value)
     value)
   
   (defun erase^ (collection iterator)
@@ -157,12 +174,12 @@ remove it and return (values VALUE T).
 Otherwise return (values DEFAULT NIL).
 The default implementation calls FIND^ and ERASE^"
     (declare (type <t> collection))
-    (let ((iter (find^ <t> collection)))
-      (if (eq iter (end^ <t> collection))
-          (values default nil)
-          (let ((value (iter-second (iterator <t>) iter)))
-            (erase^ collection iter)
-            (values value t))))))
+    (let ((iter (find^ (<t>) collection)))
+      (if (valid-iter? (<t>) iter)
+          (let ((value (iter-second (<t>) iter)))
+            (erase^ (<t>) collection iter)
+            (values value t))
+          (values default nil)))))
 
 
 

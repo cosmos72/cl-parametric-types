@@ -25,7 +25,8 @@
 	   #:multi-subst #:tree-find
            #:typexpand #:typexpand-1
 
-           #:first-atom #:recurse-first-atom #:lambda-list->args
+           #:first-atom #:recurse-first-atom
+           #:lambda-list->params #:lambda-list->args
 
 	   #:ufixnum #:simple-t-array #:simple-array-1 #:simple-t-array-1
            #:char-string #:simple-char-string))
