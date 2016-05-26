@@ -17,7 +17,12 @@
 (template (&optional (<t1> t) (<t2> t))
   (defstruct pair
     (first nil  :type <t1>)
-    (second nil :type <t2>)))
+    (second nil :type <t2>))
+
+  (declaim (inline new-pair))
+  (defun new-pair (&optional first second)
+    (make-pair (<t1> <t2>) :first first :second second)))
+         
 
 
 #|

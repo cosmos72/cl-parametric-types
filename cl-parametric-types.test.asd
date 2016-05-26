@@ -25,7 +25,9 @@
    (:file "types"     :depends-on ("package"))
    (:file "compare"   :depends-on ("package"))
    (:file "pair"      :depends-on ("package"))
-   (:file "triple"    :depends-on ("pair"))))
+   (:file "triple"    :depends-on ("pair"))
+   (:file "bivector"  :depends-on ("package"))))
+   
 
 
 (defmethod asdf:perform :after ((operation asdf:load-op)

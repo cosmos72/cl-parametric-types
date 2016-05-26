@@ -28,6 +28,7 @@
      (:file "list"         :depends-on ("package"))
      (:file "tree"         :depends-on ("package"))
      (:file "alias"        :depends-on ("tree"))
+     (:file "check"        :depends-on ("package"))
      (:file "eval"         :depends-on ("package"))
      (:file "error"        :depends-on ("eval"))
      (:file "types"        :depends-on ("package"))

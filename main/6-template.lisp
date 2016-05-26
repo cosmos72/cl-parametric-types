@@ -23,7 +23,7 @@ Public API: TEMPLATE macro and friends
 (defmacro define-template-function
     ((&rest template-args)
 	(&key declaims specialized-for)
-	   (defun name lambda-list &body body))
+	   (defun-or-defmacro name lambda-list &body body))
 
   (let* ((template-types  (lambda-list->params template-args))
 	 (function-args   (lambda-list->args   lambda-list)))
@@ -38,7 +38,7 @@ Public API: TEMPLATE macro and friends
 	 (setf (get-definition 'template-function ',name ',specialized-for)
 	       '(template-function ,template-args
 		 ,@(parse-function-declaims name declaims)
-		 (,defun name! ,lambda-list
+		 (,defun-or-defmacro name! ,lambda-list
 		   ,@body))))
        ,(if specialized-for
 	    `',name
@@ -54,7 +54,9 @@ Public API: TEMPLATE macro and friends
 	(defstruct name-and-options &rest slot-descriptions))
 
 
-  (let* ((template-types   (lambda-list->params template-args))
+  (let* ((documentations (when (stringp (first slot-descriptions))
+                           (list (pop slot-descriptions))))
+         (template-types   (lambda-list->params template-args))
 	 (name-and-options (parse-struct-name-and-options name-and-options))
 	 (name!-and-options (if (consp name-and-options)
 				(cons 'name! (rest name-and-options))
@@ -98,17 +100,18 @@ Public API: TEMPLATE macro and friends
 			     ,template-slot-names)
 			   ',name)))))
        ,@(if specialized-for
-            `(',name)
-            `((define-struct-make&copy! ,name make copy)
-              (define-struct-accessors! ,name nil
-		   ;; if superclass is a template that depends on TEMPLATE-TYPES,
-		   ;; we will know superclass slots only after instantiating
-		   ;; the struct itself...
-		   ,nontemplate-superclass-name
+             `(',name)
+             `((define-struct-make&copy! ,name make copy)
+               (define-struct-accessors! ,name nil
+                 ;; if superclass is a template that depends on TEMPLATE-TYPES,
+                 ;; we will know superclass slots only after instantiating
+                 ;; the struct itself...
+                 ,nontemplate-superclass-name
 		 ;; structure type predicate (foo-p ...) behaves exactly like a slot named P
 		 (p ,@nontemplate-slot-names))
 	       ;; rely on DEFTYPE to parse the TEMPLATE-ARGS lambda list
-	       (deftype ,name ,template-args
+               (deftype ,name ,template-args
+                 ,@documentations
 		 (instantiate 'template-type ',name `(,,@template-types))))))))
 
 
@@ -171,13 +174,13 @@ Public API: TEMPLATE macro and friends
   (let ((forms nil)
 	(declaims nil))
     (dolist (definition template-definitions)
-      (destructuring-bind (macro name &body body) definition
-	(case macro
+      (destructuring-bind (definer name &body body) definition
+	(case definer
 	  ((declaim) (push definition declaims))
 	  (otherwise
 	   (setf declaims (nreverse declaims))
 	   (push
-	    (ecase macro
+	    (ecase definer
 	      ((defclass)
 	       `(define-template-class ,template-args (:declaims ,declaims ,@options)
 		  (defclass ,name ,@body)))
@@ -187,9 +190,9 @@ Public API: TEMPLATE macro and friends
 	      ((deftype)
 	       `(define-template-type ,template-args (:declaims ,declaims ,@options)
 		  (deftype ,name ,@body)))
-	      ((defun)
+	      ((defun defmacro)
 	       `(define-template-function ,template-args (:declaims ,declaims ,@options)
-		  (defun ,name ,@body))))
+		  (,definer ,name ,@body))))
 	    forms)
 	   (setf declaims nil)))))
     (setf forms (nreverse forms))

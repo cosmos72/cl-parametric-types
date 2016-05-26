@@ -12,22 +12,21 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
-(in-package :cl-user)
+#|
 
-(defpackage #:cl-parametric-types.lang
-  (:nicknames #:cpt.lang #:c+lang)
+CHECK-IF-SAFE
 
-  (:use #:common-lisp)
+|#
 
-  (:shadow #:defstruct)
 
-  (:export #:defstruct #:alias #:eval-in-env #:eval! #:error! #:check-if-safe
-	   #:multi-subst #:tree-find
-           #:typexpand #:typexpand-1
+(in-package :cl-parametric-types.lang)
 
-           #:first-atom #:recurse-first-atom
-           #:lambda-list->params #:lambda-list->args
 
-	   #:ufixnum #:simple-t-array #:simple-array-1 #:simple-t-array-1
-           #:char-string #:simple-char-string))
+(defmacro check-if-safe (expr &environment env)
+  "If SPEED < SAFETY, signal an error if EXPR evaluates to NIL.
+If SPEED >= SAFETY, do nothing"
+  (when (< (introspect-environment:policy-quality 'speed env)
+           (introspect-environment:policy-quality 'safety env))
+    `(unless ,expr
+       (error "check failed: ~S" ',expr))))
 

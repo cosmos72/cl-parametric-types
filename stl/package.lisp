@@ -27,11 +27,22 @@
   (:import-from #:cl-parametric-types
                 #:log.info #:log.debug)
   
-  (:export #:less #:less-equal #:greater #:greater-equal
-           #:equal-to #:not-equal-to
+  (:export #:iterator #:valid-iter? #:end-iter? #:incf-iter #:decf-iter
+           #:iter-key #:iter-value #:set-iter-key #:set-iter-value
+
+           #:empty? #:size
+           #:begin^ #:end^ #:front^ #:back^ #:find^ #:clear #:insert^ #:put^ #:erase^
+           #:begin  #:end  #:front  #:back  #:get-value    #:set-value       #:erase
+
+           #:bivector #:new-bivector #:biref #:set-biref
            
-           #:pair #:make-pair #:copy-pair #:pair-p
+           #:pair #:make-pair #:new-pair #:copy-pair #:pair-p
            #:pair-first #:pair-second
 
-           #:triple #:make-triple #:copy-triple #:triple-p
-           #:triple-first #:triple-second #:triple-third))
+           #:triple #:make-triple #:new-triple #:copy-triple #:triple-p
+           #:triple-first #:triple-second #:triple-third
+
+           #:less #:less-equal #:greater #:greater-equal
+           #:equal-to #:not-equal-to))
+           
+

@@ -79,10 +79,12 @@ cannot instantiate ~S"
 	    (push template-type template-params)
 	    (push t             template-values)))
 	    
-	(log.debug "~&; instantiating ~a ~s
-;   as ~s
-;   using ~s specialization for ~s~&"
-		   (kind-name kind) (cons name actual-types) concrete name pattern)
+	(log.debug "~&; instantiating ~a ~s as ~s~a~&"
+		   (kind-name kind) (cons name actual-types) concrete
+                   (if (equal pattern template-types)
+                       ""
+                       (format nil "~%;   using ~s specialization for ~s"
+                               name pattern)))
 
 	(let ((forms (cddr definition)))
 	  (values
