@@ -34,7 +34,7 @@
            #:begin^ #:end^ #:front^ #:back^ #:find^ #:clear #:insert^ #:put^ #:erase^
            #:begin  #:end  #:front  #:back  #:get-value    #:set-value       #:erase
 
-           #:bivector #:new-bivector #:biref #:set-biref
+           #:bivector #:new-bivector #:copy-bivector #:biref #:set-biref
            
            #:pair #:make-pair #:new-pair #:copy-pair #:pair-p
            #:pair-first #:pair-second

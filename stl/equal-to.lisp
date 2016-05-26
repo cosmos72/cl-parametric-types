@@ -15,6 +15,7 @@
 (in-package #:cl-parametric-types.stl)
 
 (template (<t>)
+  (declaim (inline equal-to))
   (defun equal-to (x y)
     (declare (type <t> x y))
     (eql x y))

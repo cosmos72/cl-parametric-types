@@ -20,21 +20,21 @@ otherwise returns NIL. Commonly used together with [HASH](hash.md)
 to implement [hash associative containers](hash-set-or-map.md)
 
 The algorithm underlying EQUAL-TO is intended to compare only the *contents*
-of the two objects X and Y, i.e. it is expected to return non-nil
+of the two objects X and Y, i.e. it is expected to return true
 if the two objects are of the same type and contains the same data.
 
 It satisfies the classical properties of equivalence relations:
 
 1. reflective: an object is EQUAL-TO itself.
 
-   Formally, `(EQUAL-TO <T> X X)` is true, i.e. non-nil
+   Formally, `(EQUAL-TO <T> X X)` is always true
 
 2. symmetric: the arguments order is irrelevant.
 
    Formally, `(EQUAL-TO <T> X Y)` implies `(EQUAL-TO <T> Y X)`
 
 3. transitive: if `(EQUAL-TO <T> X Y)` and `(EQUAL-TO <T> Y Z)` are both true,
-   i.e. non-nil, then `(EQUAL-TO <T> X Y)` is true too.
+   then `(EQUAL-TO <T> X Y)` is true too.
 
 It must also satisfy the additional property:
 
@@ -66,6 +66,8 @@ Specializations:
 CL-PARAMETRIC-TYPES.STL predefines the following specializations:
 
         (EQUAL-TO (<T>))
+        (EQUAL-TO ((BIVECTOR <T>)))
+        (EQUAL-TO ((ITERATOR (BIVECTOR <T>))))
         (EQUAL-TO ((PAIR <T1> <T2>)))
         (EQUAL-TO ((SIMPLE-ARRAY <T>)))
         (EQUAL-TO (SIMPLE-BIT-VECTOR))

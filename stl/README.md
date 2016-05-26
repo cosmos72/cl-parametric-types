@@ -5,6 +5,8 @@ CL-PARAMETRIC-TYPES.STL aims at reimplementing most of C++ STL functions and typ
 translating them to idiomatic Common Lisp.
 
 It currently implements:
+* template-type `(BIVECTOR <T>)` - see [bivector.md](bivector.md)
+
 * template-type `(PAIR <T1> <T2>)` - see [pair.md](pair.md)
 
 * template-type `(TRIPLE <T1> <T2> <T3>)` - see [triple.md](triple.md)

@@ -74,16 +74,40 @@ BIVECTOR: a template-struct implementing resizeable, one-dimensional array.
 (defsetf biref set-biref)
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(template (&optional (<t> t))
-  (:specialized-for ((bivector <t>)))
+(alias ((<bivector> (bivector <t>)))
 
-  (deftype iterator () '(biiterator <t>)))
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (template (&optional (<t> t))
+    (:specialized-for ((bivector <t>)))
+
+    (declaim (notinline equal-to))
+    (defun equal-to (x y)
+      (declare (type <bivector> x y))
+      (or (eq x y)
+          (let ((xstart (bivector-start (<t>) x))
+                (xend   (bivector-end   (<t>) x))
+                (ystart (bivector-start (<t>) y))
+                (yend   (bivector-end   (<t>) y)))
+            (and
+             (= (the ufixnum (- xend xstart))
+                (the ufixnum (- yend ystart)))
+               
+             (let ((xdata  (bivector-data  (<t>) x))
+                   (ydata  (bivector-data  (<t>) y)))
+
+               (loop :for xi :from xstart :below xend
+                  :for yi :from ystart
+                  :always
+                  (let ((xe (aref xdata xi))
+                        (ye (aref ydata yi)))
+                    (equal-to (<t>) xe ye))))))))
+      
+    
+    (deftype iterator () '(biiterator <t>))))
 
 
 (alias ((<bivector> (bivector <t>))
         (<iterator> (iterator (bivector <t>))))
-
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (template (&optional (<t> t))
