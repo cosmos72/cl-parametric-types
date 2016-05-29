@@ -31,10 +31,10 @@
            #:iter-key #:iter-value #:set-iter-key #:set-iter-value
 
            #:empty? #:size
-           #:begin^ #:end^ #:front^ #:back^ #:find^ #:clear #:insert^ #:put^ #:erase^
-           #:begin  #:end  #:front  #:back  #:get-value    #:set-value       #:erase
+           #:begin^ #:end^ #:front^ #:back^ #:at^ #:find^ #:insert^ #:put^ #:erase^ #:clear
+           #:begin  #:end  #:front  #:back  #:get-value  #:set-value       #:erase
 
-           #:bivector #:new-bivector #:copy-bivector #:biref #:set-biref
+           #:deque #:new-deque #:copy-deque
            
            #:pair #:make-pair #:new-pair #:copy-pair #:pair-p
            #:pair-first #:pair-second
