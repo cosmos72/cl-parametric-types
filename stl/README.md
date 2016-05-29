@@ -11,8 +11,7 @@ It currently implements:
 
 * template-type `(TRIPLE <T1> <T2> <T3>)` - see [triple.md](triple.md)
 
-* template-functions `(EQUAL-TO (<T>))` and `(NOT-EQUAL-TO (<T>))`
-  - see [equal-to.md](equal-to.md)
+* template-functions `(EQUAL-TO (<T>))` and `(NOT-EQUAL-TO (<T>))` - see [equal-to.md](equal-to.md)
   
 * template-function `(HASH (<T>))` - see [hash.md](hash.md)
 
