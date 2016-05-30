@@ -22,11 +22,21 @@ CHECK-IF-SAFE
 (in-package :cl-parametric-types.lang)
 
 
+(defun check-failed (form &rest args)
+  (error "check failed: ~S~%with:~A" form
+         (with-output-to-string (s)
+           (loop :while args :do
+              (format s "~%  ~A = ~S" (pop args) (pop args))))))
+
+
 (defmacro check-if-safe (expr &environment env)
   "If SPEED < SAFETY, signal an error if EXPR evaluates to NIL.
 If SPEED >= SAFETY, do nothing"
   (when (< (introspect-environment:policy-quality 'speed env)
            (introspect-environment:policy-quality 'safety env))
     `(unless ,expr
-       (error "check failed: ~S" ',expr))))
-
+       (check-failed ',expr ,@(when (consp expr)
+                                    (loop :for e :in (rest expr)
+                                       :collect `',e
+                                       :collect e))))))
+    

@@ -44,10 +44,10 @@ DEQUE: a template-struct implementing resizeable, one-dimensional array
     (defun new-deque (size &key initial-element initial-contents)
       (make-deque (<t>)
                   :data (if initial-contents
-                            (make-array (list size)
+                            (make-array size
                                         :element-type '<t>
                                         :initial-contents initial-contents)
-                            (make-array (list size)
+                            (make-array size
                                         :element-type '<t>
                                         :initial-element initial-element))
                   :start 0
@@ -175,17 +175,6 @@ DEQUE: a template-struct implementing resizeable, one-dimensional array
          (<  cursor (iterator-end   (<deque>) iterator)))))
 
 
-    ;; no need to specialize FRONT^
-
-    (defun back^ (deque)
-      "If DEQUE is not empty, return iterator to last element.
-Otherwise *may* signal an error"
-      (declare (type <deque> deque))
-      (check-if-safe (not (empty? (<deque>) deque)))
-      (let ((size (size (<deque>) deque)))
-        (at^ (<deque>) deque (1- size))))
-
-    
     (defun front (deque)
       "If DEQUE is not empty, return its first element.
 Otherwise *may* signal an error"

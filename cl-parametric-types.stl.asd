@@ -31,4 +31,5 @@
    (:file "collection"  :depends-on ("iterator"))
    (:file "binary-node" :depends-on ("pair"))
    (:file "binary-tree" :depends-on ("collection" "binary-node"))
-   (:file "deque"       :depends-on ("collection"))))
+   (:file "deque"       :depends-on ("collection"))
+   (:file "vector"      :depends-on ("collection"))))

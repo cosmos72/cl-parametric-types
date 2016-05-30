@@ -30,11 +30,13 @@
   (:export #:iterator #:valid-iter? #:end-iter? #:incf-iter #:decf-iter
            #:iter-key #:iter-value #:set-iter-key #:set-iter-value
 
-           #:empty? #:size
-           #:begin^ #:end^ #:front^ #:back^ #:at^ #:find^ #:insert^ #:put^ #:erase^ #:clear
-           #:begin  #:end  #:front  #:back  #:get-value  #:set-value       #:erase
+           #:empty? #:size #:capacity #:resize #:reserve
+           #:begin^ #:end^ #:front^ #:back^ #:at^ #:find^ #:insert^ #:put^ #:erase^ 
+           #:begin  #:end  #:front  #:back  #:get-value   #:set-value      #:erase #:clear
 
-           #:deque #:new-deque #:copy-deque
+           #:vector* #:new-vector*
+           
+           #:deque   #:new-deque
            
            #:pair #:make-pair #:new-pair #:copy-pair #:pair-p
            #:pair-first #:pair-second

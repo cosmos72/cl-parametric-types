@@ -48,17 +48,25 @@ from a lambda list. Example: (a b &optional (c 1)) -> (a b c)"
 
 (defun lambda-list->args (lambda-list)
   "Convert the lamda-list into a list of arguments for a function call.
-Example: (a b &optional (c 1) &key foo) -> (a b c :foo foo)"
+Example: (a b &optional (c 1) &key foo) -> (a b c :foo foo).
+WARNING: Removes any argument following &rest. Use LAMBDA-LIST->REST to capture them"
   (declare (type list lambda-list))
   (let ((args nil)
-        (key? nil))
-    (dolist (e lambda-list (nreverse args))
-      (let ((arg (first-atom e)))
-        (when (eq arg '&key)
-          (setf key? t))
-        (unless (member arg lambda-list-keywords)
-          (when key?
-            (push (intern (symbol-name arg) :keyword) args))
-          (push arg args))))))
+        (key? nil)
+        (rest? nil))
+    (loop :for es :on lambda-list :do
+       (let* ((e (first es))
+              (arg (first-atom e)))
+         (case arg
+           (&key (setf key? t))
+           (&rest (setf rest? t))
+           (otherwise
+            (unless (or rest? (member arg lambda-list-keywords))
+              (when key?
+                (push (intern (symbol-name arg) :keyword) args))
+              (push arg args))))))
+    (nreverse args)))
 
-
+(defun lambda-list->rest (lambda-list)
+  "Extract the arguments following &rest in lamda-list"
+  (rest (member '&rest lambda-list)))

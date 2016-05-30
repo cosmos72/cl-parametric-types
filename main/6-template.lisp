@@ -25,8 +25,9 @@ Public API: TEMPLATE macro and friends
 	(&key declaims specialized-for)
 	   (defun-or-defmacro name lambda-list &body body))
 
-  (let* ((template-types  (lambda-list->params template-args))
-	 (function-args   (lambda-list->args   lambda-list)))
+  (let* ((template-types (lambda-list->params template-args))
+	 (function-args  (lambda-list->args   lambda-list))
+	 (function-rest  (lambda-list->rest   lambda-list)))
 
     (when specialized-for
       ;; normalize specialization types,
@@ -45,7 +46,7 @@ Public API: TEMPLATE macro and friends
 	    ;; rely on DEFMACRO to parse the TEMPLATE-ARGS lambda list
 	    `(defmacro ,name (,template-args ,@lambda-list)
 	       `(,(instantiate 'template-function ',name `(,,@template-types))
-		  ,,@function-args))))))
+		  ,,@function-args ,@,@function-rest))))))
 
 
 (defmacro define-template-struct
@@ -213,3 +214,5 @@ Public API: TEMPLATE macro and friends
        (pop template-definitions))
     `(define-template ,template-args ,(nreverse options)
        ,@template-definitions)))
+
+

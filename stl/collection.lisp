@@ -16,10 +16,22 @@
 
 ;;;; ** Functions related to collections
 
+
+(template (<t>)
+  ;; TEMPLATE DEFSTRUCT defines constructors named like MAKE-<T>,
+  ;; and does not yet support :CONSTRUCTOR,
+  ;; so we use NEW as the public template-function to instantiate template-types
+  (defmacro new (&rest function-args)
+    (error! "No specialization of ~s for (~s)" 'new '<t>)))
+
+
+
 (template (<collection>)
 
-  ;; capacity
+
+  ;; size and capacity
   
+
   (declaim (inline empty?))
   (defun empty? (collection)
     "Return T if COLLECTION is empty, otherwise return NIL.
@@ -33,9 +45,28 @@ Default implementation: (ZEROP (SIZE (<COLLECTION>) COLLECTION))"
     (declare (type <collection> collection))
     (error! "No specialization of ~s for (~s)" 'size '<collection>))
 
+  
+  (defun capacity (collection)
+    "Return maximum number of elements that COLLECTION can hold without reallocation."
+    (declare (type <collection> collection))
+    (error! "No specialization of ~s for (~s)" 'capacity '<collection>))
+
+
+  (defun resize (collection new-size)
+    "Set the COLLECTION size. Return new size.
+Supported only by random-access collections."
+    (error! "No specialization of ~s for (~s)" 'resize '<collection>))
+    
+
+  (defun reserve (collection new-capacity)
+    "Set the COLLECTION capacity. Return new capacity.
+Supported only by random-access and hash-associative collections."
+    (error! "No specialization of ~s for (~s)" 'reserve '<collection>))
+
 
   ;; iterators
 
+  
   (defun begin^ (collection)
     "If COLLECTION is not empty, return iterator to first element.
 Otherwise return END^"
@@ -50,46 +81,28 @@ to compare an iterator against the END^ iterator, use VALID-ITER? or END-ITER?"
     (error! "No specialization of ~s for (~s)" 'end^ '<collection>))
 
   
-  (declaim (inline front^))
-  (defun front^ (collection)
-    "If COLLECTION is not empty, return iterator to first element.
-Otherwise *may* signal an error"
-    (declare (type <collection> collection))
-    (check-if-safe (not (empty? (<collection>) collection)))
-    (begin^ (<collection>) collection))
+  ;; lookup
 
-
-  (defun back^ (collection)
-    "If COLLECTION is not empty, return iterator to last element.
-Otherwise return END^"
-    (error! "No specialization of ~s for (~s)" 'back^ '<collection>))
-
-
+  
   (declaim (inline front))
   (defun front (collection)
     "If COLLECTION is not empty, return (values KEY VALUE)
 where KEY and VALUE are the first entry in COLLECTION.
 Otherwise *may* signal an error.
-The default implementation calls FRONT^"
+The default implementation calls BEGIN^"
     (declare (type <collection> collection))
-    (let ((iter (front^ (<collection>) collection)))
+    (check-if-safe (not (empty? (<collection>) collection)))
+    (let ((iter (begin^ (<collection>) collection)))
       (values (iter-key  (<collection>) iter)
               (iter-value (<collection>) iter))))
 
 
-  (declaim (inline back))
   (defun back (collection)
     "If COLLECTION is not empty, return (values KEY VALUE)
 where KEY and VALUE are the last entry in COLLECTION.
-Otherwise *may* signal an error.
-The default implementation calls BACK^"
-    (declare (type <collection> collection))
-    (let ((iter (back^ (<collection>) collection)))
-      (values (iter-key  (<collection>) iter)
-              (iter-value (<collection>) iter))))
-
+Otherwise *may* signal an error."
+    (error! "No specialization of ~s for (~s)" 'back '<collection>))
   
-  ;; lookup
 
   (defun find^ (set-or-map element)
     "If SET-OR-MAP contains ELEMENT, return iterator to it.
@@ -125,10 +138,21 @@ The default implementation calls AT^"
 
   ;; modifiers
 
+  
   (defun clear (collection)
-    "Remove all elements from COLLECTION.
-Return COLLECTION"
+    "Remove all elements from COLLECTION. Return COLLECTION"
     (error! "No specialization of ~s for (~s)" 'clear '<collection>))
+
+
+  (defun pop-back (collection)
+    "If COLLECTION is not empty, erase its last element and return it.
+Otherwise *may* signal an error"
+    (error! "No specialization of ~s for (~s)" 'pop-back '<collection>))
+
+  
+  (defun push-back (collection element)
+    "Append ELEMENT at the end of COLLECTION. Return ELEMENT"
+    (error! "No specialization of ~s for (~s)" 'push-back '<collection>))
 
 
   (defun insert^ (set-or-map key &optional value)
@@ -188,7 +212,6 @@ The default implementation calls FIND^ and ERASE^"
 
 
 
-
 (defmacro [] ((<collection>) collection key)
   "Equivalent to (GET-VALUE (<COLLECTION>) COLLECTION KEY)"
   `(get-value (,<collection>) ,collection ,key))
@@ -199,6 +222,8 @@ The default implementation calls FIND^ and ERASE^"
   `(set-value (,<collection>) ,collection ,key ,value))
 
 
+(defsetf size      resize)
+(defsetf capacity  reserve)
 (defsetf get-value set-value)
 (defsetf []        set-[])
 

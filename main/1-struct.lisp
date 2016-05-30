@@ -104,6 +104,7 @@ then accessors for superclass slots are NOT defined."
   `(progn
      ,@(define-struct-accessors name specialized-for superclass-name slot-names)))
 
+
 (defmacro make ((&rest template-args) &rest function-args)
   (let ((concrete-function (instantiate 'template-constructor 'make `(,@template-args))))
     `(,concrete-function ,@function-args)))
@@ -123,6 +124,7 @@ then accessors for superclass slots are NOT defined."
                       *package*)))))
     (let* ((template-args    (get-definition-template-args 'template-type struct-name nil))
            (template-types   (lambda-list->args template-args))
+           (template-rest    (lambda-list->rest template-args))
            (function-args    (gensym (symbol-name 'function-args)))
            (constructor-name (prefix->name constructor-prefix))
            (copier-name      (prefix->name copier-prefix))
@@ -132,7 +134,7 @@ then accessors for superclass slots are NOT defined."
          `(defmacro ,constructor-name ((,@template-args) &rest ,function-args)
             ;; (instantiate 'template-type ',struct-name `(,,@template-types))
             `(,(concretize 'template-constructor ',constructor-prefix
-                           `((,',struct-name ,,@template-types)))
+                           `((,',struct-name ,,@template-types ,@,@template-rest)))
                ,@,function-args))
          forms))
       (when copier-name
@@ -140,7 +142,7 @@ then accessors for superclass slots are NOT defined."
          `(defmacro ,copier-name ((,@template-args) &rest ,function-args)
             ;; (instantiate 'template-type ',struct-name `(,,@template-types))
             `(,(concretize 'template-constructor ',copier-prefix
-                           `((,',struct-name ,,@template-types)))
+                           `((,',struct-name ,,@template-types ,@,@template-rest)))
                ,@,function-args))
          forms))
       (nreverse forms))))

@@ -21,7 +21,7 @@
         (<iterator> (iterator (deque fixnum))))
   (def-test deque (:compile-at :definition-time)
     (let* ((v (new-deque  (fixnum) 7 :initial-contents #(0 1 2 3 4 5 6)))
-           (w (copy-deque (fixnum) v)))
+           (w (new-deque  (fixnum) 7 :initial-contents #(0 1 2 3 4 5 6))))
       (is-false (empty?   (<deque>) v))
       (is  (= 7 (size     (<deque>) v)))
       (is  (= 0 (front    (<deque>) v)))
