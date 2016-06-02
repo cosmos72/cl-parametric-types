@@ -33,6 +33,7 @@
            #:empty? #:size #:capacity #:resize #:reserve
            #:begin^ #:end^ #:front^ #:back^ #:at^ #:find^ #:insert^ #:put^ #:erase^ 
            #:begin  #:end  #:front  #:back  #:get-value   #:set-value      #:erase #:clear
+           #:push-back #:pop-back
 
            #:vector* #:new-vector*
            

@@ -34,7 +34,7 @@
            #:simple-t-array #:simple-array-1 #:simple-t-array-1
            #:char-string #:simple-char-string
 
-	   #:error! #:eval! #:eval-splice! #:quote! #:name!
+	   #:check-if-safe #:error! #:eval! #:eval-splice! #:quote! #:name!
            #:make #:copy 
 
            #:instantiate-type     #:instantiate-function

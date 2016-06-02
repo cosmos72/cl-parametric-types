@@ -26,7 +26,8 @@
    (:file "compare"   :depends-on ("package"))
    (:file "pair"      :depends-on ("package"))
    (:file "triple"    :depends-on ("pair"))
-   (:file "deque"     :depends-on ("package"))))
+   (:file "deque"     :depends-on ("package"))
+   (:file "vector"    :depends-on ("package"))))
    
 
 

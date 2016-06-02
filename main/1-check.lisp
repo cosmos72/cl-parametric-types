@@ -19,7 +19,7 @@ CHECK-IF-SAFE
 |#
 
 
-(in-package :cl-parametric-types.lang)
+(in-package :cl-parametric-types)
 
 
 (defun check-failed (form &rest args)
@@ -28,6 +28,15 @@ CHECK-IF-SAFE
            (loop :while args :do
               (format s "~%  ~A = ~S" (pop args) (pop args))))))
 
+(defun is-template-function? (func-name)
+  (when (symbolp func-name)
+    (let ((definition
+           (get-definition 'template-function func-name nil)))
+      (eq 'defun (car (fourth definition))))))
+    
+(defun is-function? (func-name)
+  (eq :function (introspect-environment:function-information func-name)))
+    
 
 (defmacro check-if-safe (expr &environment env)
   "If SPEED < SAFETY, signal an error if EXPR evaluates to NIL.
@@ -37,11 +46,18 @@ If SPEED >= SAFETY, do nothing"
     (let ((args nil))
       (when (consp expr)
         (let ((func-name (first expr)))
-          (if (assoc ' 
+          (cond
+            ((is-function? func-name)
+             (setf args (cdr expr)))
+            ((is-template-function? func-name)
+             ;; first argument of template functions is (<t> ...), skip it
+             (setf args (cddr expr)))
+            (t 
+             ;; do not evaluate the arguments of a macro
+             nil))))
       
-    `(unless ,expr
-       (check-failed ',expr ,@(when (consp expr)
-                                    (loop :for e :in (rest expr)
-                                       :collect `',e
-                                       :collect e))))))
+      `(unless ,expr
+         (check-failed ',expr ,@(loop :for arg :in args
+                                   :collect `',arg
+                                   :collect arg))))))
     

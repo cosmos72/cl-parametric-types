@@ -25,10 +25,7 @@ Public API: TEMPLATE macro and friends
 	(&key declaims specialized-for)
 	   (defun-or-defmacro name lambda-list &body body))
 
-  (let* ((template-types (lambda-list->params template-args))
-	 (function-args  (lambda-list->args   lambda-list))
-	 (function-rest  (lambda-list->rest   lambda-list)))
-
+  (let ((template-types  (lambda-list->params template-args)))
     (when specialized-for
       ;; normalize specialization types,
       ;; but typexpand them only if they do NOT depend on template-args
@@ -43,10 +40,14 @@ Public API: TEMPLATE macro and friends
 		   ,@body))))
        ,(if specialized-for
 	    `',name
-	    ;; rely on DEFMACRO to parse the TEMPLATE-ARGS lambda list
-	    `(defmacro ,name (,template-args ,@lambda-list)
-	       `(,(instantiate 'template-function ',name `(,,@template-types))
-		  ,,@function-args ,@,@function-rest))))))
+
+            (let ((function-params (lambda-list->params lambda-list))
+                  (whole           (gensym (symbol-name 'whole))))
+              ;; rely on DEFMACRO to parse the TEMPLATE-ARGS lambda list
+              `(defmacro ,name (&whole ,whole ,template-args ,@lambda-list)
+                 (declare (ignore ,@function-params)) ;; we only use WHOLE
+                 `(,(instantiate 'template-function ',name `(,,@template-types))
+                    ,@(cddr ,whole))))))))
 
 
 (defmacro define-template-struct

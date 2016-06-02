@@ -38,13 +38,20 @@ TREE-FIND
       thing))
 
 (defun lambda-list->params (lambda-list)
-  "Remove the lamda-list keywords (&key &optional &rest etc.) and the default values
+  "Remove the lambda-list keywords (&key &optional &rest etc.) and the default values
 from a lambda list. Example: (a b &optional (c 1)) -> (a b c)"
   (declare (type list lambda-list))
   (loop :for e :in lambda-list
-     :for arg = (first-atom e)
-     :unless (member arg lambda-list-keywords)
-     :collect arg))
+     :unless (member e lambda-list-keywords)
+     :collect (first-atom e)))
+
+(defun lambda-list->params-flags (lambda-list)
+  "Return the third element of &optional and &key lambda-list parameters.
+Example: (a b &optional (c 1) (d 2 d?)) -> (d?)"
+  (declare (type list lambda-list))
+  (loop :for e :in lambda-list
+     :when (and (consp e) (cddr e))
+     :collect (third e)))
 
 (defun lambda-list->args (lambda-list)
   "Convert the lamda-list into a list of arguments for a function call.

@@ -29,45 +29,58 @@ VECTOR*: a template-struct implementing resizeable, one-dimensional array
   with constant-time random access to elements and efficient insertion/removal
   of elements at the end. It is equivalent to C++ std::vector<T>"
     (data  (make-array 0 :element-type '<t>) :type (simple-array-1 <t>))
-    (size  0 :type ufixnum)))
+    (size  0 :type ufixnum))
   
+  (declaim (notinline new-vector*))
+  (defun new-vector* (&key (initial-size 0) (initial-capacity 0)
+                        (initial-element nil initial-element?)
+                        (initial-contents nil initial-contents?))
+    (let* ((size (if initial-contents? (length initial-contents) initial-size))
+           (capacity (max size initial-capacity)))
+      (make-vector* (<t>)
+                    :data (cond
+                            (initial-contents?
+                             (make-array size
+                                         :element-type '<t>
+                                         :initial-contents initial-contents))
+                            (initial-element?
+                             (make-array capacity
+                                         :element-type '<t>
+                                         :initial-element initial-element))
+                            (t
+                             (make-array capacity
+                                         :element-type '<t>)))
+                    :size size))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(template (&optional (<t> t))
-  (:specialized-for ((vector* <t>)))
+(alias ((<vector>   (vector* <t>)))
+  (template (&optional (<t> t))
+    (:specialized-for ((vector* <t>)))
 
-  (declaim (inline new))
-  (defun new (&key (initial-capacity 0) initial-element initial-contents)
-    (make-vector* (<t>)
-                  :data (if initial-contents
-                            (make-array initial-capacity
-                                        :element-type '<t>
-                                        :initial-contents initial-contents)
-                            (make-array initial-capacity
-                                        :element-type '<t>
-                                        :initial-element initial-element))
-                  :size   0))
+    (defmacro new (&rest args)
+      "NEW specialization for (VECTOR* <T>)"
+      `(new-vector* (<t>) ,@args))
 
-;; style guideline: define iterators with DEFSTRUCT rather than DEFTYPE
-  ;; because #S(<ITERATOR.<MYCOLLECTION.T>> ...) is more readable
-  ;; than #S(<MYCOLLECTION-ITERATOR> ...)
-  (defstruct (iterator (:include (vector* <t>)))
-    (cursor 0 :type ufixnum))
-
-  (declaim (notinline equal-to))
-  (defun equal-to (x y)
-    (declare (type <vector> x y))
-    (or (eq x y)
-        (let ((xsize (vector*-size (<t>) x))
-              (ysize (vector*-size (<t>) y)))
-          (and
-           (= xsize ysize)
-           (let ((xdata (vector*-data (<t>) x))
-                 (ydata (vector*-data (<t>) y)))
-             
-             (loop :for i :from 0 :below xsize
-                :always
-                (equal-to (<t>) (aref xdata i) (aref ydata i)))))))))
+    ;; style guideline: define iterators with DEFSTRUCT rather than DEFTYPE
+    ;; because #S(<ITERATOR.<MYCOLLECTION.T>> ...) is more readable
+    ;; than #S(<MYITERATOR-FOR-MYCOLLECTION.T> ...)
+    (defstruct (iterator (:include (vector* <t>)))
+      (cursor 0 :type ufixnum))
+    
+    (declaim (notinline equal-to))
+    (defun equal-to (x y)
+      (declare (type <vector> x y))
+      (or (eq x y)
+          (let ((xsize (vector*-size (<t>) x))
+                (ysize (vector*-size (<t>) y)))
+            (and
+             (= xsize ysize)
+             (let ((xdata (vector*-data (<t>) x))
+                   (ydata (vector*-data (<t>) y)))
+               
+               (loop :for i :from 0 :below xsize
+                  :always
+                  (equal-to (<t>) (aref xdata i) (aref ydata i))))))))))
       
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -120,21 +133,25 @@ VECTOR*: a template-struct implementing resizeable, one-dimensional array
                (type ufixnum new-size))
       (let ((capacity (capacity (<vector>) vector*)))
         (when (> new-size capacity)
-          (reserve (<vector>) (min new-size (ash (* 3 capacity) -1)))))
+          (reserve (<vector>) vector*
+                   (max 4 new-size
+                        (the ufixnum
+                             (+ capacity (ash capacity -1)))))))
       (setf <vsize> new-size))
     
 
     (defun reserve (vector* new-capacity)
-      "Set the VECTOR* capacity. Return new capacity."
+      "Set the VECTOR* capacity. Return new capacity.
+Does not alter vector size, and minimum capacity is the size."
       (declare (type <vector> vector*)
                (type ufixnum new-capacity))
-      (let* ((old-data     <vdata>)
-             (old-size     <vsize>)
-             (old-capacity (array-dimension data 0))
-             (new-capacity (max new-capacity old-size)))
+      (let* ((size         <vsize>)
+             (old-data     <vdata>)
+             (old-capacity (array-dimension old-data 0))
+             (new-capacity (max new-capacity size)))
         (unless (= old-capacity new-capacity)
           (let ((new-data (make-array new-capacity :element-type '<t>)))
-            (dotimes (i old-size)
+            (dotimes (i size)
               (setf (aref new-data i) (aref old-data i)))
             (setf <vdata> new-data)))
         new-capacity))
