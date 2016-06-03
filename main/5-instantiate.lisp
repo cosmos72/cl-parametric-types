@@ -79,7 +79,7 @@ cannot instantiate ~S"
 	    (push template-type template-params)
 	    (push t             template-values)))
 	    
-	(log.debug "~&; instantiating ~a ~s as ~s~a~&"
+	(log.debug "~&; instantiating ~a ~s~&;   as ~s~a~&"
 		   (kind-name kind) (cons name actual-types) concrete
                    (if (equal pattern template-types)
                        ""

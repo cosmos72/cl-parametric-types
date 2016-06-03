@@ -22,38 +22,44 @@ VECTOR*: a template-struct implementing resizeable, one-dimensional array
          It is equivalent to C++ std::vector<T>
 |#
 
-(template (&optional (<t> t))
+(alias ((<vector>   (vector* <t>))
+        (<iterator> (iterator (vector* <t>)))
+        (<vdata>    (vector*-data (<t>) vector*))
+        (<vsize>    (vector*-size (<t>) vector*)))
+  
+  (template (&optional (<t> t))
 
-  (defstruct vector*
-    "(VECTOR* <T>): a template-struct implementing resizeable, one-dimensional array,
+    (defstruct vector*
+      "(VECTOR* <T>): a template-struct implementing resizeable, one-dimensional array,
   with constant-time random access to elements and efficient insertion/removal
   of elements at the end. It is equivalent to C++ std::vector<T>"
-    (data  (make-array 0 :element-type '<t>) :type (simple-array-1 <t>))
-    (size  0 :type ufixnum))
-  
-  (declaim (notinline new-vector*))
-  (defun new-vector* (&key (initial-size 0) (initial-capacity 0)
-                        (initial-element nil initial-element?)
-                        (initial-contents nil initial-contents?))
-    (let* ((size (if initial-contents? (length initial-contents) initial-size))
-           (capacity (max size initial-capacity)))
-      (make-vector* (<t>)
-                    :data (cond
-                            (initial-contents?
-                             (make-array size
-                                         :element-type '<t>
-                                         :initial-contents initial-contents))
-                            (initial-element?
-                             (make-array capacity
-                                         :element-type '<t>
-                                         :initial-element initial-element))
-                            (t
-                             (make-array capacity
-                                         :element-type '<t>)))
-                    :size size))))
+      (data  (make-array 0 :element-type '<t>) :type (simple-array-1 <t>))
+      (size  0 :type ufixnum))
+    
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(alias ((<vector>   (vector* <t>)))
+    (declaim (notinline new-vector*))
+    (defun new-vector* (&key (initial-size 0) (initial-capacity 0)
+                          (initial-element nil initial-element?)
+                          (initial-contents nil initial-contents?))
+      (let* ((size (if initial-contents? (length initial-contents) initial-size))
+             (capacity (max size initial-capacity)))
+        (make-vector* (<t>)
+                      :data (cond
+                              (initial-contents?
+                               (make-array size
+                                           :element-type '<t>
+                                           :initial-contents initial-contents))
+                              (initial-element?
+                               (make-array capacity
+                                           :element-type '<t>
+                                           :initial-element initial-element))
+                              (t
+                               (make-array capacity
+                                           :element-type '<t>)))
+                      :size size))))
+  
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (template (&optional (<t> t))
     (:specialized-for ((vector* <t>)))
 
@@ -80,15 +86,10 @@ VECTOR*: a template-struct implementing resizeable, one-dimensional array
                
                (loop :for i :from 0 :below xsize
                   :always
-                  (equal-to (<t>) (aref xdata i) (aref ydata i))))))))))
+                  (equal-to (<t>) (aref xdata i) (aref ydata i)))))))))
       
     
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(alias ((<vector>   (vector* <t>))
-        (<iterator> (iterator (vector* <t>)))
-        (<vdata>    (vector*-data (<t>) vector*))
-        (<vsize>    (vector*-size (<t>) vector*)))
-  
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (template (&optional (<t> t))
     (:specialized-for ((iterator (vector* <t>))))
     
@@ -135,8 +136,7 @@ VECTOR*: a template-struct implementing resizeable, one-dimensional array
         (when (> new-size capacity)
           (reserve (<vector>) vector*
                    (max 4 new-size
-                        (the ufixnum
-                             (+ capacity (ash capacity -1)))))))
+                        (ufixnum+ capacity (ash capacity -1))))))
       (setf <vsize> new-size))
     
 
@@ -294,8 +294,7 @@ Otherwise *may* signal an error"
 Otherwise *may* signal an error"
       (declare (type <vector> vector*))
       (check-if-safe (not (empty? (<vector>) vector*)))
-      (let ((size (decf <vsize>)))
-        (get-value (<vector>) vector* size)))
+      (aref <vdata> (decf <vsize>)))
 
 
     (defun push-back (vector* element)
@@ -304,7 +303,7 @@ Otherwise *may* signal an error"
                (type <t> element))
       (let* ((data     <vdata>)
              (old-size <vsize>)
-             (new-size (the ufixnum (1+ old-size))))
+             (new-size (ufixnum+ 1 old-size)))
         (cond
           ((<= new-size (array-dimension data 0))
            (setf <vsize> new-size

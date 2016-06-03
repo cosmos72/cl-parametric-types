@@ -21,7 +21,7 @@
 
   (:shadow #:defstruct)
 
-  (:export #:defstruct #:alias #:eval-in-env #:eval! #:error!
+  (:export #:defstruct #:alias #:eval-in-env #:eval! #:error! #:current-function
 	   #:multi-subst #:tree-find
            #:typexpand #:typexpand-1
 
@@ -29,6 +29,7 @@
            #:lambda-list->params #:lambda-list->params-flags
            #:lambda-list->args #:lambda-list->rest
 
-	   #:ufixnum #:simple-t-array #:simple-array-1 #:simple-t-array-1
+	   #:ufixnum #:ufixnum+1 #:ufixnum-1 #:ufixnum+ #:ufixnum- #:ufixnum* #:ufixnum/
+           #:simple-t-array #:simple-array-1 #:simple-t-array-1
            #:char-string #:simple-char-string))
 

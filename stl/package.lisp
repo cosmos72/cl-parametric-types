@@ -30,10 +30,10 @@
   (:export #:iterator #:valid-iter? #:end-iter? #:incf-iter #:decf-iter
            #:iter-key #:iter-value #:set-iter-key #:set-iter-value
 
-           #:empty? #:size #:capacity #:resize #:reserve
-           #:begin^ #:end^ #:front^ #:back^ #:at^ #:find^ #:insert^ #:put^ #:erase^ 
-           #:begin  #:end  #:front  #:back  #:get-value   #:set-value      #:erase #:clear
-           #:push-back #:pop-back
+           #:new #:empty? #:size #:capacity #:resize #:reserve #:clear
+           #:begin^ #:end^ #:at^   #:find^   #:insert^   #:put^   #:erase^ 
+           #:begin  #:end  #:front #:back #:get-value #:set-value #:erase 
+           #:pop-front   #:pop-back   #:push-front   #:push-back
 
            #:vector* #:new-vector*
            

@@ -21,12 +21,16 @@ CHECK-IF-SAFE
 
 (in-package :cl-parametric-types)
 
+(declaim (type (or symbol (function (string &rest t) t)) *check-failed-function*))
+(defvar *check-failed-function* 'error)
 
-(defun check-failed (form &rest args)
-  (error "check failed: ~S~%with:~A" form
-         (with-output-to-string (s)
-           (loop :while args :do
-              (format s "~%  ~A = ~S" (pop args) (pop args))))))
+(defun check-failed (caller form &rest args)
+  (funcall (or *check-failed-function* 'error)
+           "~S: check failed: ~A~%with:~A" caller form
+           (with-output-to-string (s)
+             (loop :while args :do
+                (format s "~%  ~A = ~S" (pop args) (pop args))))))
+
 
 (defun is-template-function? (func-name)
   (when (symbolp func-name)
@@ -57,7 +61,8 @@ If SPEED >= SAFETY, do nothing"
              nil))))
       
       `(unless ,expr
-         (check-failed ',expr ,@(loop :for arg :in args
-                                   :collect `',arg
-                                   :collect arg))))))
+         (check-failed (current-function) ',expr
+                       ,@(loop :for arg :in args
+                            :collect `',arg
+                            :collect arg))))))
     

@@ -52,13 +52,13 @@ Default implementation: (ZEROP (SIZE (<COLLECTION>) COLLECTION))"
     (error! "No specialization of ~s for (~s)" 'capacity '<collection>))
 
 
-  (defun resize (collection new-size)
+  (defun resize (collection new-size &key &allow-other-keys)
     "Set the COLLECTION size. Return new size.
 Supported only by random-access collections."
     (error! "No specialization of ~s for (~s)" 'resize '<collection>))
     
 
-  (defun reserve (collection new-capacity)
+  (defun reserve (collection new-capacity &key &allow-other-keys)
     "Set the COLLECTION capacity. Return new capacity.
 Supported only by random-access and hash-associative collections."
     (error! "No specialization of ~s for (~s)" 'reserve '<collection>))
@@ -144,12 +144,23 @@ The default implementation calls AT^"
     (error! "No specialization of ~s for (~s)" 'clear '<collection>))
 
 
+  (defun pop-front (collection)
+    "If COLLECTION is not empty, erase its first element and return it.
+Otherwise *may* signal an error"
+    (error! "No specialization of ~s for (~s)" 'pop-front '<collection>))
+  
+
   (defun pop-back (collection)
     "If COLLECTION is not empty, erase its last element and return it.
 Otherwise *may* signal an error"
     (error! "No specialization of ~s for (~s)" 'pop-back '<collection>))
 
-  
+
+  (defun push-front (collection element)
+    "Insert ELEMENT before the beginning of COLLECTION. Return ELEMENT"
+    (error! "No specialization of ~s for (~s)" 'push-front '<collection>))
+
+
   (defun push-back (collection element)
     "Append ELEMENT at the end of COLLECTION. Return ELEMENT"
     (error! "No specialization of ~s for (~s)" 'push-back '<collection>))

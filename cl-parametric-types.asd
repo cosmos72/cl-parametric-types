@@ -18,7 +18,7 @@
   :author "Massimiliano Ghilardi"
   :license "LLGPL"
   :description "C++-style templates for Common Lisp"
-  :depends-on (:closer-mop :introspect-environment)
+  :depends-on (:closer-mop :introspect-environment :log4cl)
   :components
   ((:static-file "cl-parametric-types.asd")
 
@@ -28,6 +28,7 @@
      (:file "list"         :depends-on ("package"))
      (:file "tree"         :depends-on ("package"))
      (:file "alias"        :depends-on ("tree"))
+     (:file "current-function" :depends-on ("package"))
      (:file "eval"         :depends-on ("package"))
      (:file "error"        :depends-on ("eval"))
      (:file "types"        :depends-on ("package"))

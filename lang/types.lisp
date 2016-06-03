@@ -22,6 +22,31 @@ aliases for common types
 
 (deftype ufixnum () '(integer 0 #.most-positive-fixnum))
 
+(declaim (inline ufixnum+1 ufixnum-1 ufixnum+ ufixnum- ufixnum* ufixnum/))
+(defun ufixnum+1 (a)
+  (declare (type fixnum a))
+  (the ufixnum (1+ a)))
+
+(defun ufixnum-1 (a)
+  (declare (type fixnum a))
+  (the ufixnum (1- a)))
+
+(defun ufixnum+ (a b)
+  (declare (type fixnum a b))
+  (the ufixnum (+ a b)))
+
+(defun ufixnum- (a b)
+  (declare (type fixnum a b))
+  (the ufixnum (- a b)))
+
+(defun ufixnum* (a b)
+  (declare (type fixnum a b))
+  (the ufixnum (* a b)))
+
+(defun ufixnum/ (a b)
+  (declare (type fixnum a b))
+  (the ufixnum (truncate a b)))
+
 (deftype simple-t-array (&optional (dimensions '*))
   "simple-array of T"
   `(simple-array t ,dimensions))
