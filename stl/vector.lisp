@@ -132,11 +132,13 @@ VECTOR*: a template-struct implementing resizeable, one-dimensional array
       "Set the VECTOR* size. Return new size."
       (declare (type <vector> vector*)
                (type ufixnum new-size))
-      (let ((capacity (capacity (<vector>) vector*)))
-        (when (> new-size capacity)
-          (reserve (<vector>) vector*
-                   (max 4 new-size
-                        (ufixnum+ capacity (ash capacity -1))))))
+      (let ((old-capacity (capacity (<vector>) vector*)))
+        (when (> new-size old-capacity)
+          (let ((new-capacity
+                 (if (<= old-capacity (truncate array-dimension-limit 2))
+                     (ash old-capacity 1)
+                     array-dimension-limit)))
+            (reserve (<vector>) vector* (max 4 new-size new-capacity)))))
       (setf <vsize> new-size))
     
 

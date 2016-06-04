@@ -43,3 +43,28 @@
         (is-true (equal-to (<iterator>) iter end)))
       
       (is  (equal-to      (<vector>) v w)))))
+
+
+(defun grow-vector (count &optional (n0 count))
+  (declare (type fixnum n0 count))
+  (let ((v (make-array n0 :element-type t :adjustable t :fill-pointer 0)))
+    (dotimes (i count)
+      (vector-push i v))
+    (length v)))
+
+
+(defun grow-vector* (count &optional (n0 count))
+  (declare (type fixnum n0 count))
+  (let ((v (new-vector* (t) :initial-capacity n0)))
+    (dotimes (i count)
+      (push-back ((vector* t)) v i))
+    (size ((vector* t)) v)))
+
+
+(defun grow-deque (count &optional (n0 count))
+  (declare (type fixnum n0 count))
+  (let ((v (new-deque (t))))
+    (reserve ((deque t)) v n0 :at :back)
+    (dotimes (i count)
+      (push-front ((deque t)) v i))
+    (size ((deque t)) v)))

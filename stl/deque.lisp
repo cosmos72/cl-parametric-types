@@ -158,17 +158,20 @@ DEQUE: a template-struct implementing resizeable, one-dimensional array
              (required (the fixnum (- new-size old-size)))) ;; may be negative
 
         (when (plusp required)
-          (let* ((capacity (capacity (<deque>) deque))
+          (let* ((old-capacity (capacity (<deque>) deque))
                  (available
                   (if (eq at :front)
                       old-start
-                      (ufixnum- capacity old-end))))
+                      (ufixnum- old-capacity old-end))))
                    
             (when (> required available)
-              (reserve (<deque>) deque
-                       (max 4 new-size
-                            (the ufixnum (+ capacity (ash capacity -1) (ash capacity -2))))
-                       :at at)
+              (let ((new-capacity
+                     (if (<= old-capacity (truncate array-dimension-limit 2))
+                         (ash old-capacity 1)
+                         array-dimension-limit)))
+                (reserve (<deque>) deque
+                         (max 4 new-size new-capacity)
+                         :at at))
               (setf new-start <qstart>))))
 
         (if (eq at :front)
@@ -188,9 +191,12 @@ Does not alter deque size, and minimum capacity is the size."
              (old-capacity (array-dimension old-data 0))
              (size         (ufixnum- <qend> old-start))
              (new-capacity (max new-capacity size)))
-             
+
+        ;; FIXME: this should allocate space for NEW-CAPACITY - OLD-CAPACITY
+        ;; elements either at :front or :back, instead of splitting the incremented capacity
+        ;; between front and back either at 1/4, 1/2 or 3/4.
         (unless (= old-capacity new-capacity)
-          (let* ((new-data (make-array new-capacity :element-type '<t>))
+          (let* ((new-data     (make-array new-capacity :element-type '<t>))
                  (new-delta/4  (ash (ufixnum+ 2 (ufixnum- new-capacity size))
                                     -2))
                  (new-start    (* new-delta/4 (case at (:front 3) (:back 1) (t 2)))))
