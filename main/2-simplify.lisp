@@ -166,6 +166,7 @@ Functions to simplify types, i.e. to replace:
 
 (defun simplify-type (type)
   (declare (type (or symbol cons) type))
+  (check-valid-type-specifier type)
   (etypecase type
     (symbol
      (case type
@@ -191,5 +192,7 @@ Functions to simplify types, i.e. to replace:
 
 (defun simplify-typexpand-list (types)
   (declare (type list types))
-   (loop :for type :in types
-      :collect (simplify-type (typexpand type))))
+  (loop :for type :in types
+     :collect (progn
+                (check-valid-type-specifier type)
+                (simplify-type (typexpand type)))))

@@ -38,31 +38,41 @@ CHECK-IF-SAFE
            (get-definition 'template-function func-name nil)))
       (eq 'defun (car (fourth definition))))))
     
-(defun is-function? (func-name)
-  (eq :function (introspect-environment:function-information func-name)))
-    
+
+(defmacro check-always (expr)
+  "Signal an error if EXPR evaluates to NIL."
+  (let ((args nil))
+    (when (consp expr)
+      (let ((func-name (first expr)))
+        (cond
+          ((is-function? func-name)
+           (setf args (cdr expr)))
+          ((is-template-function? func-name)
+           ;; first argument of template functions is (<t> ...), skip it
+           (setf args (cddr expr)))
+          (t 
+           ;; do not evaluate the arguments of a macro
+           nil))))
+      
+    `(unless ,expr
+       (check-failed (current-function) ',expr
+                     ,@(loop :for arg :in args
+                          :collect `',arg
+                          :collect arg)))))
+
 
 (defmacro check-if-safe (expr &environment env)
   "If SPEED < SAFETY, signal an error if EXPR evaluates to NIL.
 If SPEED >= SAFETY, do nothing"
   (when (< (introspect-environment:policy-quality 'speed env)
            (introspect-environment:policy-quality 'safety env))
-    (let ((args nil))
-      (when (consp expr)
-        (let ((func-name (first expr)))
-          (cond
-            ((is-function? func-name)
-             (setf args (cdr expr)))
-            ((is-template-function? func-name)
-             ;; first argument of template functions is (<t> ...), skip it
-             (setf args (cddr expr)))
-            (t 
-             ;; do not evaluate the arguments of a macro
-             nil))))
-      
-      `(unless ,expr
-         (check-failed (current-function) ',expr
-                       ,@(loop :for arg :in args
-                            :collect `',arg
-                            :collect arg))))))
+    `(check-always ,expr)))
+
     
+
+(defmacro check-valid-type-specifier (type)
+  `(check-always (valid-type-specifier? ,type)))
+
+
+(defmacro check-valid-type-specifiers (type-list)
+  `(check-always (valid-type-specifiers? ,type-list)))

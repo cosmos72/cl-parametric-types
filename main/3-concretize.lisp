@@ -131,6 +131,7 @@ into concrete type names, as for example <PAIT.BIT.FIXNUM>
   (declare (type list actual-types))
   (when simplify
     (setf actual-types (simplify-typexpand-list actual-types)))
+
   (values
    (ecase kind
      (template-type
@@ -155,11 +156,13 @@ into concrete type names, as for example <PAIT.BIT.FIXNUM>
 (defmethod concretize (kind name actual-types &key (simplify t))
   (declare (type list actual-types))
 
+  (check-valid-type-specifiers actual-types)
+
   (unless *concretize*
     (when simplify
       (setf actual-types (simplify-typexpand-list actual-types)))
     (return-from concretize (cons name actual-types)))
-  
+
   (multiple-value-bind (mangled-name actual-types*)
       (mangle kind name actual-types :simplify simplify)
     (let* ((symbol

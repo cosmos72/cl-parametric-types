@@ -37,6 +37,37 @@ TREE-FIND
       (first thing)
       thing))
 
+(defun proper-list? (list)
+  (declare (type list list))
+  (loop :while list :do
+     (let ((rest (rest list)))
+       (unless (listp rest)
+         (return-from proper-list? nil))
+       (setf list rest)))
+  t)
+
+(defun proper-tree? (tree)
+  (declare (type list tree))
+  (loop :while tree :do
+     (let ((first (first tree))
+           (rest  (rest  tree)))
+       (unless (listp rest)
+         (return-from proper-tree? nil))
+       (when (consp first)
+         (unless (proper-tree? first)
+           (return-from proper-tree? nil)))
+       (setf tree rest)))
+  t)
+
+(defun valid-type-specifier? (type)
+  (declare (type (or symbol cons) type))
+  (or (symbolp type)
+      (proper-tree? type)))
+
+(defun valid-type-specifiers? (type-list)
+  (declare (type list type-list))
+  (proper-tree? type-list))
+
 (defun lambda-list->params (lambda-list)
   "Remove the lambda-list keywords (&key &optional &rest etc.) and the default values
 from a lambda list. Example: (a b &optional (c 1)) -> (a b c)"

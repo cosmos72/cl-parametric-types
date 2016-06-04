@@ -62,6 +62,9 @@ currently being instantiated."
 
 (defmethod instantiate-definition (kind name actual-types)
   (declare (type list actual-types))
+  
+  (check-valid-type-specifiers actual-types)
+
   (let ((concrete (concretize-cached kind name actual-types)))
     (multiple-value-bind (definition pattern template-types template-constraints)
 	(get-definition kind name actual-types)

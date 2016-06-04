@@ -123,29 +123,33 @@ then accessors for superclass slots are NOT defined."
               (intern (concatenate 'string (symbol-name prefix) "-" (symbol-name struct-name))
                       *package*)))))
     (let* ((template-args    (get-definition-template-args 'template-type struct-name nil))
-           (template-types   (lambda-list->args template-args))
-           (template-rest    (lambda-list->rest template-args))
-           (function-args    (gensym (symbol-name 'function-args)))
-           (constructor-name (prefix->name constructor-prefix))
-           (copier-name      (prefix->name copier-prefix))
+           (template-args-whole  (gensym (symbol-name 'whole)))
+           (template-types       (lambda-list->params template-args))
+           (template-types-flags (lambda-list->params-flags template-args))
+           (function-args        (gensym (symbol-name 'function-args)))
+           (constructor-name     (prefix->name constructor-prefix))
+           (copier-name          (prefix->name copier-prefix))
            (forms))
       (when constructor-name
         (push
-         `(defmacro ,constructor-name ((,@template-args) &rest ,function-args)
-            ;; (instantiate 'template-type ',struct-name `(,,@template-types))
+         `(defmacro ,constructor-name ((&whole ,template-args-whole ,@template-args)
+                                       &rest ,function-args)
+            (declare (ignore ,@template-types ,@template-types-flags))
             `(,(concretize 'template-constructor ',constructor-prefix
-                           `((,',struct-name ,,@template-types ,@,@template-rest)))
+                           `((,',struct-name ,@,template-args-whole)))
                ,@,function-args))
          forms))
       (when copier-name
         (push
-         `(defmacro ,copier-name ((,@template-args) &rest ,function-args)
-            ;; (instantiate 'template-type ',struct-name `(,,@template-types))
+         `(defmacro ,copier-name ((&whole ,template-args-whole ,@template-args)
+                                  &rest ,function-args)
+            (declare (ignore ,@template-types ,@template-types-flags))
             `(,(concretize 'template-constructor ',copier-prefix
-                           `((,',struct-name ,,@template-types ,@,@template-rest)))
+                           `((,',struct-name ,@,template-args-whole)))
                ,@,function-args))
          forms))
       (nreverse forms))))
+
 
 (defmacro define-struct-make&copy! (struct-name constructor-name copier-name)
   `(progn

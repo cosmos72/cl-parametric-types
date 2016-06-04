@@ -21,11 +21,14 @@
 
   (:shadow #:defstruct)
 
-  (:export #:defstruct #:alias #:eval-in-env #:eval! #:error! #:current-function
+  (:export #:defstruct #:alias #:eval-in-env #:eval! #:error!
+           #:find-package* #:find-symbol* #:find-function-or-macro
+           #:is-function? #:current-function
 	   #:multi-subst #:tree-find
            #:typexpand #:typexpand-1
 
            #:first-atom #:recurse-first-atom
+           #:proper-list? #:proper-tree? #:valid-type-specifier? #:valid-type-specifiers?
            #:lambda-list->params #:lambda-list->params-flags
            #:lambda-list->args #:lambda-list->rest
 
