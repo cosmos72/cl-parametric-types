@@ -190,23 +190,29 @@ Does not alter deque size, and minimum capacity is the size."
              (old-start    <qstart>)
              (old-capacity (array-dimension old-data 0))
              (size         (ufixnum- <qend> old-start))
-             (new-capacity (max new-capacity size)))
-
-        ;; FIXME: this should allocate space for NEW-CAPACITY - OLD-CAPACITY
-        ;; elements either at :front or :back, instead of splitting the incremented capacity
-        ;; between front and back either at 1/4, 1/2 or 3/4.
-        (unless (= old-capacity new-capacity)
+             ;; allocate space for (- NEW-CAPACITY OLD-CAPACITY) elements
+             ;; either at :front or :back. A little extra spare capacity
+             ;; is reserved at the other end too.
+             (asked-capacity (max new-capacity size))
+             (extra-capacity (if (eq at :both)
+                                 0
+                                 (min (ash asked-capacity -2)
+                                      (ufixnum- array-dimension-limit asked-capacity))))
+             (new-capacity (ufixnum+ asked-capacity extra-capacity)))
+            
+        (unless (= old-capacity asked-capacity)
           (let* ((new-data     (make-array new-capacity :element-type '<t>))
-                 (new-delta/4  (ash (ufixnum+ 2 (ufixnum- new-capacity size))
-                                    -2))
-                 (new-start    (* new-delta/4 (case at (:front 3) (:back 1) (t 2)))))
+                 (new-start    (case at
+                                 (:front (ufixnum- asked-capacity size))
+                                 (:back  extra-capacity)
+                                 (t      (ash (ufixnum- new-capacity size) -1)))))
             (dotimes (i size)
               (setf (aref new-data (ufixnum+ i new-start))
                     (aref old-data (ufixnum+ i old-start))))
             (setf <qdata>  new-data
                   <qstart> new-start
                   <qend>   (ufixnum+ new-start size))))
-        new-capacity))
+        asked-capacity))
 
 
     ;; iterators
