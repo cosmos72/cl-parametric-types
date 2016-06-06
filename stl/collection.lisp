@@ -62,7 +62,7 @@ Supported only by random-access collections."
     "Set the COLLECTION capacity. Return new capacity.
 Supported only by random-access and hash-associative collections."
     (error! "No specialization of ~s for (~s)" 'reserve '<collection>))
-
+  
 
   ;; iterators
 
@@ -166,25 +166,54 @@ Otherwise *may* signal an error"
     (error! "No specialization of ~s for (~s)" 'push-back '<collection>))
 
 
-  (defun insert^ (set-or-map key &optional value)
-    "If SET-OR-MAP contains KEY, do nothing and return (values ITERATOR NIL).
-Otherwise insert KEY and VALUE, and return (values ITERATOR T).
-In both cases, ITERATOR is the iterator pointing to KEY."
+  (defun insert^ (set-or-map key-or-index &optional value)
+    "INSERT^ has different semantics depending on the type of collection:
+For associative collections:
+  if there is a VALUE associated to KEY-OR-INDEX, do nothing and return (values ITERATOR NIL).
+  otherwise insert KEY-OR-INDEX and VALUE, and return (values ITERATOR T).
+For random-access collections:
+  insert VALUE at position KEY-OR-INDEX and shift all following elements by one position.
+  Return (values ITERATOR T).
+In all cases, ITERATOR is the iterator pointing to KEY-OR-INDEX."
     (error! "No specialization of ~s for (~s)" 'insert^ '<collection>))
 
 
+  (declaim (inline insert))
+  (defun insert (set-or-map key-or-index &optional value)
+    "INSERT has different semantics depending on the type of collection:
+For associative collections:
+  if collection does *not* contain KEY-OR-INDEX, insert KEY-OR-INDEX and VALUE
+    and return (values VALUE T).
+  otherwise, do nothing and return (values EXISTING-VALUE NIL)
+    where EXISTING-VALUE is the value already associated to KEY-OR-INDEX.
+For random-access collections:
+  insert VALUE at position KEY-OR-INDEX and shift forward by one position
+  all following elements. Return (values VALUE T).
+The default implementation calls INSERT^"
+    (declare (type <collection> set-or-map))
+    (multiple-value-bind (iter flag) (insert^ (<collection>) set-or-map key value)
+      (values (iter-value (<collection>) iter) flag)))
+    
+  
   (defun put^ (set-or-map key &optional value)
     "If SET-OR-MAP contains KEY, overwrite its VALUE and return (values ITERATOR NIL).
 Otherwise insert KEY and VALUE, and return (values ITERATOR T).
 In both cases, ITERATOR is the iterator pointing to KEY.
-The default implementation calls FIND^ and INSERT^"
+The default implementation calls INSERT^"
     (declare (type <collection> set-or-map))
-    (let ((iter (find^ (<collection>) set-or-map)))
-      (if (end-iter? (<collection>) iter)
-          (insert^ (<collection>) set-or-map key value)
-          (progn
-            (setf (iter-value (<collection>) iter) value)
-            (values iter nil)))))
+    (multiple-value-bind (iter flag) (insert^ (<collection>) set-or-map key value)
+      (unless flag
+        (setf (iter-value (<collection>) iter) value))
+      (values iter flag)))
+
+
+  (declaim (inline put))
+  (defun put (set-or-map key &optional value)
+    "If SET-OR-MAP contains KEY, overwrite its VALUE and return (values PREVIOUS-VALUE NIL).
+Otherwise insert KEY and VALUE, and return (values VALUE T).
+The default implementation calls PUT^"
+    (multiple-value-bind (iterator flag) (put^ (<collection>) set-or-map key value)
+      (values (iter-value (<collection>) iterator) flag)))
 
 
   (declaim (inline set-value))
@@ -194,10 +223,10 @@ For associative collections:
   Add KEY and VALUE in COLLECTION. If COLLECTION already contains KEY, overwrite its VALUE.
   Return VALUE.
 For random-access collections:
-  set the N-th element to VALUE, where N is equal to KEY-OR-INDEX.
-The default implementation calls PUT^"
+  set the N-th element to VALUE, where N is equal to KEY-OR-INDEX. Return VALUE.
+The default implementation calls PUT"
     (declare (type <collection> collection))
-    (put^ (<collection>) collection key value)
+    (put (<collection>) collection key value)
     value)
   
 

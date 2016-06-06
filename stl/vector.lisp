@@ -291,12 +291,27 @@ Otherwise *may* signal an error"
       (setf (aref <vdata> index) value))
     
 
+    (declaim (inline pop-front))
+    (defun pop-front (vector*)
+      "If VECTOR* is not empty, erase its first element and return it.
+Otherwise *may* signal an error.
+Warning: this function is slow, i.e. takes O(N) time"
+      (values (erase (<vector>) vector* 0)))
+
+
     (defun pop-back (vector*)
       "If VECTOR* is not empty, erase its last element and return it.
 Otherwise *may* signal an error"
       (declare (type <vector> vector*))
       (check-if-safe (not (empty? (<vector>) vector*)))
       (aref <vdata> (decf <vsize>)))
+
+
+    (declaim (inline push-front))
+    (defun push-front (vector* element)
+      "Insert ELEMENT before the beginning of COLLECTION. Return ELEMENT.
+Warning: this function is slow, i.e. takes O(N) time"
+      (values (insert (<vector>) vector* 0 element)))
 
 
     (defun push-back (vector* element)
@@ -326,6 +341,9 @@ Return iterator following the removed element."
     (defun erase (vector* index &optional default)
       "Erase element at INDEX in VECTOR*.
 Return (values VALUE T) where VALUE is the removed element."
+      (declare (type <vector> vector*)
+               (type ufixnum  index)
+               (ignore default))
       (check-if-safe (< index <vsize>))
       (let* ((data <vdata>)
              (size <vsize>)
@@ -336,6 +354,26 @@ Return (values VALUE T) where VALUE is the removed element."
         (setf <vsize> size-1)
         (values element t)))
 
+
+    (defun insert (vector* index value)
+      "Insert VALUE at INDEX in VECTOR*. Return (values VALUE T)."
+      (declare (type <vector> vector*)
+               (type ufixnum  index))
+      (check-if-safe (<= index <vsize>))
+      (let ((cursor (ufixnum+1 <vsize>)))
+        (declare (type ufixnum cursor))
+        (if (<= cursor (capacity (<vector>) vector*))
+            (setf <vsize> cursor)
+            (resize (<vector>) vector* cursor))
+
+        (let ((data <vdata>))
+          (loop :while (> cursor index) :do
+             (let* ((cursor-1 (ufixnum-1 cursor))
+                    (e (aref data cursor-1)))
+               (setf (aref data cursor) e
+                     cursor cursor-1)))
+          (setf (aref data cursor) value))
+        (values value t)))
     ))
       
 
