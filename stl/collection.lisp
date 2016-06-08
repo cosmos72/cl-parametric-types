@@ -14,7 +14,7 @@
 
 (in-package #:cl-parametric-types.stl)
 
-;;;; ** Functions related to collections
+;;;  Functions related to collections
 
 
 (template (<t>)

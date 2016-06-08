@@ -14,14 +14,6 @@
 
 (in-package #:cl-parametric-types.stl)
 
-#|
-
-VECTOR*: a template-struct implementing resizeable, one-dimensional array
-         with constant-time random access to elements
-         and efficient insertion/removal of elements at the end.
-         It is equivalent to C++ std::vector<T>
-|#
-
 (alias ((<vector>   (vector* <t>))
         (<iterator> (iterator (vector* <t>)))
         (<vdata>    (vector*-data (<t>) vector*))
@@ -30,17 +22,17 @@ VECTOR*: a template-struct implementing resizeable, one-dimensional array
   (template (&optional (<t> t))
 
     (defstruct vector*
-      "(VECTOR* <T>): a template-struct implementing resizeable, one-dimensional array,
-  with constant-time random access to elements and efficient insertion/removal
-  of elements at the end. It is equivalent to C++ std::vector<T>"
+      "A template-struct implementing resizeable, one-dimensional array
+with O(1) random access to elements
+and amortized O(1) insertion/removal of elements at the end.
+Insertion and removal of elements requires O(n) time in general.
+It is equivalent to C++ std::vector<T>."
       (data  (make-array 0 :element-type '<t>) :type (simple-array-1 <t>))
       (size  0 :type ufixnum))
     
 
     (declaim (notinline new-vector*))
-    (defun new-vector* (&key (initial-size 0) (initial-capacity 0)
-                          (initial-element nil initial-element?)
-                          (initial-contents nil initial-contents?))
+    (defun new-vector* (&key (initial-size 0) (initial-capacity 0) (initial-element nil initial-element?) (initial-contents nil initial-contents?))
       (let* ((size (if initial-contents? (length initial-contents) initial-size))
              (capacity (max size initial-capacity)))
         (make-vector* (<t>)

@@ -14,7 +14,7 @@
 
 (in-package #:cl-parametric-types.stl)
 
-;;;; ** Functions related to iterators
+;;; Functions related to iterators
 
 
 (template (<collection>)

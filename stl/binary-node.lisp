@@ -14,7 +14,7 @@
 
 (in-package #:cl-parametric-types.stl)
 
-;;;; ** binary node
+;;; binary node
 
 (template (<k> <v>)
   (defstruct (binary-node (:include (pair <k> <v>)))
@@ -23,7 +23,7 @@
     (parent nil :type (or null (binary-node <k> <v>)))))
 
 
-;;;; ** Helper functions used by binary-tree subclasses
+;;; Helper functions used by binary-tree subclasses
 
 (alias ((<kv> (<k> <v>)))
   (template (<k> <v>)

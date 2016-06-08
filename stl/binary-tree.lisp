@@ -14,11 +14,13 @@
 
 (in-package #:cl-parametric-types.stl)
 
-;;;; ** Generic sorted binary tree
-;;;; For a red-black tree implementation, see red-black-tree.lisp
-;;;; For a sorted-map implementation, see sorted-map.lisp
-;;;; For a sorted-set implementation, see sorted-set.lisp
+;;; Generic sorted binary tree
 
+#|
+For a red-black tree implementation, see red-black-tree.lisp
+For a sorted-map implementation, see sorted-map.lisp
+For a sorted-set implementation, see sorted-set.lisp
+|#
 
 (alias ((<tree>    (binary-tree <k> <v> <less>))
         (<node>    (binary-node <k> <v>))

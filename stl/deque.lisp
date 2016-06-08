@@ -14,15 +14,6 @@
 
 (in-package #:cl-parametric-types.stl)
 
-#|
-
-DEQUE: a template-struct implementing resizeable, one-dimensional array
-       with constant-time random access to elements
-       and efficient insertion/removal of elements at both ends.
-       It is equivalent to C++ std::deque<T>, with the difference that
-       it internally stores the elements in continuous storage
-|#
-
 (alias ((<deque> (deque <t>))
         (<qdata>    (deque-data  (<t>) deque))
         (<qstart>   (deque-start (<t>) deque))
@@ -33,16 +24,17 @@ DEQUE: a template-struct implementing resizeable, one-dimensional array
         (<istart>   (iterator-start  ((deque <t>)) iterator))
         (<iend>     (iterator-end    ((deque <t>)) iterator))
         (<icursor>  (iterator-cursor ((deque <t>)) iterator)))
-                    
 
   (template (&optional (<t> t))
 
     (defstruct deque
-      "(DEQUE <T>): a template-struct implementing resizeable, one-dimensional array,
-  with constant-time random access to elements and efficient insertion/removal
-  of elements at both ends.
-  It is equivalent to C++ std::deque<T>, with the difference that
-  it internally stores the elements in continuous storage"
+      "
+A template-struct implementing resizeable, one-dimensional array with O(1)
+random access to elements and amortized O(1) insertion/removal of elements
+at both ends.
+
+Resizing is implemented by allocating the twice size of array, then copying
+the pointer to the elements."
       (data  (make-array 0 :element-type '<t>) :type (simple-array-1 <t>))
       (start 0 :type ufixnum)
       (end   0 :type ufixnum))
@@ -167,7 +159,8 @@ DEQUE: a template-struct implementing resizeable, one-dimensional array
             (when (> required available)
               (let ((new-capacity
                      (if (<= old-capacity (truncate array-dimension-limit 2))
-                         (ash old-capacity 1)
+                         #+nil (* old-capacity 2)
+                         (ash old-capacity 1) ;; twice the size
                          array-dimension-limit)))
                 (reserve (<deque>) deque
                          (max 4 new-size new-capacity)
@@ -196,7 +189,8 @@ Does not alter deque size, and minimum capacity is the size."
              (asked-capacity (max new-capacity size))
              (extra-capacity (if (eq at :both)
                                  0
-                                 (min (ash asked-capacity -2)
+                                 (min #+nil (floor old-capacity 4)
+                                      (ash asked-capacity -2)
                                       (ufixnum- array-dimension-limit asked-capacity))))
              (new-capacity (ufixnum+ asked-capacity extra-capacity)))
             
@@ -207,6 +201,7 @@ Does not alter deque size, and minimum capacity is the size."
                                  (:back  extra-capacity)
                                  (t      (ash (ufixnum- new-capacity size) -1)))))
             (dotimes (i size)
+              ;; this one is ignoring the resizable array in default cl --- performance comparison required?
               (setf (aref new-data (ufixnum+ i new-start))
                     (aref old-data (ufixnum+ i old-start))))
             (setf <qdata>  new-data
