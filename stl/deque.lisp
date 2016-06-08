@@ -159,7 +159,6 @@ the pointer to the elements."
             (when (> required available)
               (let ((new-capacity
                      (if (<= old-capacity (truncate array-dimension-limit 2))
-                         #+nil (* old-capacity 2)
                          (ash old-capacity 1) ;; twice the size
                          array-dimension-limit)))
                 (reserve (<deque>) deque
@@ -189,8 +188,7 @@ Does not alter deque size, and minimum capacity is the size."
              (asked-capacity (max new-capacity size))
              (extra-capacity (if (eq at :both)
                                  0
-                                 (min #+nil (floor old-capacity 4)
-                                      (ash asked-capacity -2)
+                                 (min (ash asked-capacity -2)
                                       (ufixnum- array-dimension-limit asked-capacity))))
              (new-capacity (ufixnum+ asked-capacity extra-capacity)))
             
@@ -201,7 +199,11 @@ Does not alter deque size, and minimum capacity is the size."
                                  (:back  extra-capacity)
                                  (t      (ash (ufixnum- new-capacity size) -1)))))
             (dotimes (i size)
-              ;; this one is ignoring the resizable array in default cl --- performance comparison required?
+              ;; guicho271828: this one is ignoring the resizable array in default cl --- performance comparison required?
+              ;; cosmos72: some initial benchmarks on SBCL show that VECTOR* is significantly faster than adjustable CL arrays.
+              ;;           The reason is VECTOR* compiles to highly optimized code on SBCL, not slowness of SBCL adjustable CL arrays.
+              ;;           On most other Lisps, VECTOR* is much slower so I will probably provide a compile-time switch
+              ;;           to implement VECTOR* on top of adjustable CL arrays.
               (setf (aref new-data (ufixnum+ i new-start))
                     (aref old-data (ufixnum+ i old-start))))
             (setf <qdata>  new-data
