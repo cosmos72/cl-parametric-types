@@ -13,7 +13,8 @@ CL-PARAMETRIC-TYPES is currently tested on SBCL, ABCL, CCL, CLISP and CMUCL.
 
 It is quite portable, as it only needs the function `CLASS-SLOTS`,
 for example from [CLOSER-MOP](https://github.com/pcostanza/closer-mop)
-and the macro `TYPEXPAND`, for example from [INTROSPECT-ENVIRONMENT](https://github.com/Bike/introspect-environment)
+and the function `TYPEXPAND`, for example from
+[INTROSPECT-ENVIRONMENT](https://github.com/Bike/introspect-environment)
 so porting it to other Common Lisp implementations should be relatively straightforward.
 
 
