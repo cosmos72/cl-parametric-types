@@ -56,10 +56,12 @@ This file does XXX.
      
 
 (defun slot-definition->name (slot-definition)
+  (break)
   (typecase slot-definition
     (symbol    slot-definition)
     (cons      (first slot-definition))
-    (otherwise (closer-mop:slot-definition-name slot-definition))))
+    (otherwise #-abcl (closer-mop:slot-definition-name slot-definition)
+	       #+abcl (aref slot-definition 1))))
 
 
 (defun define-struct-inherited-accessors (name template-args superclass-name)

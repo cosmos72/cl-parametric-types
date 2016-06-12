@@ -7,12 +7,9 @@ Summary
 -------
 CL-PARAMETRIC-TYPES adds C++-style template classes, structs and functions to Common Lisp.
 
-This project is currently BETA, i.e. usable but not complete.
-
-
 Supported systems
 -----------------
-CL-PARAMETRIC-TYPES is currently tested on SBCL, CCL, CLISP and CMUCL.
+CL-PARAMETRIC-TYPES is currently tested on SBCL, ABCL, CCL, CLISP and CMUCL.
 
 It is quite portable, as it only needs the function `CLASS-SLOTS`,
 for example from [CLOSER-MOP](https://github.com/pcostanza/closer-mop)
