@@ -56,7 +56,6 @@ This file does XXX.
      
 
 (defun slot-definition->name (slot-definition)
-  (break)
   (typecase slot-definition
     (symbol    slot-definition)
     (cons      (first slot-definition))

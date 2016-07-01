@@ -5,6 +5,8 @@ CL-PARAMETRIC-TYPES.STL aims at reimplementing most of C++ STL functions and typ
 translating them to idiomatic Common Lisp.
 
 It currently implements:
+* template-type `(VECTOR* <T>)` - see [vector.md](vector.md)
+
 * template-type `(DEQUE <T>)` - see [deque.md](deque.md)
 
 * template-type `(PAIR <T1> <T2>)` - see [pair.md](pair.md)
